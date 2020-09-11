@@ -137,16 +137,25 @@ public abstract class AppMainBaseWithSplash extends Application {
         };
     }
 
-    @Override
-    public void start(Stage _stage) throws IOException {
+    /*
+     * Internally used to either get the task of the user
+     * or create an empty task.
+     */
+    private Task<Void> getStartupTaskInternal() {
         Task<Void> startTask = startupTaskAction();
-
         Task<Void> task = startTask == null ? task = new Task<>() {
             @Override
             protected Void call() throws Exception {
                 return null;
             }
         } : startTask;
+
+        return task;
+    }
+
+    @Override
+    public void start(Stage _stage) throws IOException {
+        Task<Void> task = getStartupTaskInternal();
 
         if (task.getOnFailed() == null) {
             task.setOnFailed(evt -> {
