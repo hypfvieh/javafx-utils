@@ -24,6 +24,22 @@
 
 	<build>
 		<plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.0.0-M3</version>
+                <configuration>
+                    <forkCount>1</forkCount>
+                    <reuseForks>false</reuseForks>
+                    <threadCount>1</threadCount>
+                    <systemPropertyVariables>
+                        <glass.platform>Monocle</glass.platform>
+                        <monocle.platform>Headless</monocle.platform>
+                        <prism.order>sw</prism.order>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
+		
 			<plugin>
                 <artifactId>maven-enforcer-plugin</artifactId>
                 <version>3.0.0-M3</version>
@@ -157,6 +173,13 @@
             <scope>test</scope>
         </dependency>
         
+        <dependency>
+            <groupId>org.testfx</groupId>
+            <artifactId>openjfx-monocle</artifactId>
+            <!--  <version>jdk-11+26</version>  --> <!-- jdk-9+181 for Java 9, 8u76-b04 for Java 8 -->
+            <version>jdk-12.0.1+2</version>
+            <scope>test</scope>
+        </dependency>
 	</dependencies>
 
 	<scm>
