@@ -78,16 +78,20 @@ public abstract class AppMainBaseWithSplash extends Application {
      * Use this to do some long running tasks before the main application is visible.
      * You can use {@link Task}.updateMessage and {@link Task}.updateProgress to use a label and progress bar.
      *
+     * @param _stage the primary stage
+     *
      * @return task or null to do nothing
      */
-    public abstract Task<Void> startupTaskAction();
+    public abstract Task<Void> startupTaskAction(Stage _stage);
 
     /**
      * Task which will be executed when application is closed.
      *
+     * @param _stage the primary stage
+     *
      * @return runnable or null to do nothing
      */
-    public abstract Runnable shutdownTaskAction();
+    public abstract Runnable shutdownTaskAction(Stage _stage);
 
     /**
      * Called when application is started with {@link AppLock} support and there was already an instance running.
@@ -137,12 +141,15 @@ public abstract class AppMainBaseWithSplash extends Application {
         };
     }
 
-    /*
+    /**
      * Internally used to either get the task of the user
      * or create an empty task.
+     *
+     * @param _stage primary stage
+     * @return task
      */
-    private Task<Void> getStartupTaskInternal() {
-        Task<Void> startTask = startupTaskAction();
+    private Task<Void> getStartupTaskInternal(Stage _stage) {
+        Task<Void> startTask = startupTaskAction(_stage);
         Task<Void> task = startTask == null ? task = new Task<>() {
             @Override
             protected Void call() throws Exception {
@@ -154,8 +161,8 @@ public abstract class AppMainBaseWithSplash extends Application {
     }
 
     @Override
-    public void start(Stage _stage) throws IOException {
-        Task<Void> task = getStartupTaskInternal();
+    public final void start(Stage _stage) throws IOException {
+        Task<Void> task = getStartupTaskInternal(_stage);
 
         if (task.getOnFailed() == null) {
             task.setOnFailed(evt -> {
@@ -224,7 +231,7 @@ public abstract class AppMainBaseWithSplash extends Application {
         // do something when window is closed (application quits)
         _stage.setOnCloseRequest((WindowEvent we) -> {
             try {
-                Runnable shutdownTaskAction = shutdownTaskAction();
+                Runnable shutdownTaskAction = shutdownTaskAction(_stage);
                 if (shutdownTaskAction != null) {
                     shutdownTaskAction.run();
                 }
