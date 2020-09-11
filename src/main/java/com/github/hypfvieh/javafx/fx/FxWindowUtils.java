@@ -3,6 +3,7 @@ package com.github.hypfvieh.javafx.fx;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -52,6 +53,16 @@ public class FxWindowUtils {
 
         CSS_THEMES.add(_fileName);
     }
+
+    /**
+     * Returns the list of currently configured CSS stylesheets.
+     *
+     * @return list, maybe empty
+     */
+    public static List<String> getCssThemes() {
+        return Collections.unmodifiableList(CSS_THEMES);
+    }
+
 
     /**
      * Set the default icon to use when opening a new window.
