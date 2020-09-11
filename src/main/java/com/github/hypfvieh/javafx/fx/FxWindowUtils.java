@@ -374,6 +374,23 @@ public class FxWindowUtils {
     }
 
     /**
+     * Opens a window and waits for return value.
+     *
+     * @param <B> parent type
+     * @param <T> value type
+     * @param _parent parent window
+     * @param _resizeable true to allow window to be resized
+     * @param _title window title
+     * @param _fxml fxml file to load
+     * @param _resultClass class of the resulting value
+     *
+     * @return instance of result class type or null
+     */
+    public static <B extends Initializable, T> T showWindowWithReturn(B _parent, boolean _resizeable, String _title, String _fxml, Class<T> _resultClass) {
+        return showWindowWithValueAndReturn(_parent, _fxml, Modality.APPLICATION_MODAL, _resizeable, _title, _resultClass, null);
+    }
+
+    /**
      * Closes a JavaFX stage (close window).
      *
      * @param _javaFxComponentOrNode component to get stage from
