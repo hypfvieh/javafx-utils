@@ -156,8 +156,12 @@ public class DateRangeDialog extends Dialog<DateRange> {
         return pickerEnd;
     }
 
-    public final TextField getDescriptionText() {
+    public final TextField getDescriptionField() {
         return txtDescription;
+    }
+
+    public final String getDescription() {
+        return txtDescription.getText();
     }
 
     static Label createContentLabel(String text) {
