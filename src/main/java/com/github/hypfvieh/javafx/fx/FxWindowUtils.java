@@ -90,6 +90,10 @@ public class FxWindowUtils {
 
     /**
      * Show a window or dialog with certain features like setting and getting values.
+     * <p>
+     * To provide a custom icon for the dialog, add an image as resource in a subfolder called "images".<br>
+     * The image should have the same name as the controller class and end with '.png'.
+     * <p>
      * Please note: Getting a value only works if the window is blocking (wait = true).
      *
      * @param _parentWindow parent window

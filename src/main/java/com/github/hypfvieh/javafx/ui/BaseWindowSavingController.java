@@ -1,10 +1,15 @@
 package com.github.hypfvieh.javafx.ui;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 import javafx.event.EventHandler;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.TableColumn.CellEditEvent;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
 
 import com.github.hypfvieh.javafx.fx.FxDialogUtils;
 import com.github.hypfvieh.javafx.windows.interfaces.ISaveOnClose;
@@ -89,4 +94,19 @@ public abstract class BaseWindowSavingController extends BaseWindowController im
         // default does nothing
     }
 
+    /**
+     * Registers CTRL+S as default global shortcut for saving data.
+     */
+    @Override
+    public Map<KeyCombination, Runnable> getGlobalShortcuts() {
+        Map<KeyCombination, Runnable> globalShortcuts = super.getGlobalShortcuts();
+        if (globalShortcuts == null) {
+            globalShortcuts = new HashMap<>();
+        }
+
+        globalShortcuts.put(new KeyCodeCombination(KeyCode.S,
+                KeyCombination.CONTROL_DOWN), () -> saveChanges());
+
+        return globalShortcuts;
+    }
 }
