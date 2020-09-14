@@ -18,6 +18,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 
 import com.github.hypfvieh.javafx.beans.DateRange;
+import com.github.hypfvieh.javafx.fx.FxControlUtils;
 
 /**
  * Dialog which shows a datepicker.
@@ -101,9 +102,17 @@ public class DateRangeDialog extends Dialog<DateRange> {
 
         updateGrid();
 
+        FxControlUtils.setDatePickerAutoCommit(pickerBegin);
+        FxControlUtils.setDatePickerAutoCommit(pickerEnd);
+
         setResultConverter((dialogButton) -> {
             ButtonData data = dialogButton == null ? null : dialogButton.getButtonData();
-            return data == ButtonData.OK_DONE ? getValue() : null;
+            if (data == ButtonData.OK_DONE) {
+                DateRange value = getValue();
+                resultProperty().set(value);
+                return value;
+            }
+            return null;
         });
     }
 
@@ -112,7 +121,7 @@ public class DateRangeDialog extends Dialog<DateRange> {
         DateRange x = new DateRange();
         x.setFrom(pickerBegin.getValue());
         x.setUntil(pickerEnd.getValue());
-        //x.setDescription(_description);
+        x.setDescription(txtDescription.getText());
         return x;
     }
 

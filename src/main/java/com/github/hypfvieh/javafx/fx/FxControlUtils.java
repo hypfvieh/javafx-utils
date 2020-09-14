@@ -2,6 +2,8 @@ package com.github.hypfvieh.javafx.fx;
 
 import java.util.Objects;
 
+import javafx.beans.value.ChangeListener;
+import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -100,5 +102,24 @@ public class FxControlUtils {
                 virtualFlow.scrollPixels(sum);
             }
         }
+    }
+
+    /**
+     * Adds a listener to {@link DatePicker#focusedProperty()} to commit changes in date picker fields when it loosed focus.
+     * <p>
+     * This is required if you want to commit changes made in the date picker by manually entering the date
+     * and not using the button or pressing enter after edit.
+     *
+     * @param _picker date picker to add listener to
+     */
+    public static void setDatePickerAutoCommit(DatePicker _picker) {
+        if (_picker == null) {
+            return;
+        }
+        _picker.focusedProperty().addListener((ChangeListener<Boolean>) (observable, oldValue, newValue) -> {
+            if (!newValue){
+                _picker.setValue(_picker.getConverter().fromString(_picker.getEditor().getText()));
+            }
+        });
     }
 }
