@@ -3,6 +3,7 @@ package com.github.hypfvieh.javafx.fx;
 import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 
 import javafx.application.Platform;
 import javafx.scene.control.Alert;
@@ -33,6 +34,9 @@ public class FxDialogUtils {
     /**
      * Shows an confirmation dialog with custom buttons.
      *
+     * <p>
+     * For dialog styling see {@link #styleDialog(Alert, AlertType)}.
+     *
      * @param _type alert type (e.g. information, warning, error)
      * @param _msg message to show
      * @param _title window title
@@ -49,6 +53,7 @@ public class FxDialogUtils {
         alert.setHeaderText(_subTitle);
         alert.setContentText(_msg);
 
+        styleDialog(alert, _type);
         alert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
 
         ButtonType btnYes = new ButtonType(_btnYesCaption, ButtonData.YES);
@@ -66,6 +71,8 @@ public class FxDialogUtils {
 
     /**
      * Shows any kind of dialog (useful for warning/information/error dialogs).
+     * <p>
+     * For dialog styling see {@link #styleDialog(Alert, AlertType)}.
      *
      * @param _type alert type
      * @param _title title of dialog
@@ -79,10 +86,29 @@ public class FxDialogUtils {
         alert.setContentText(_msg);
         alert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
         alert.getDialogPane().setMinWidth(500);
-        if (_type == AlertType.ERROR) {
-            alert.getDialogPane().getScene().getStylesheets().add("dialog-style-error.css");
-        }
+        styleDialog(alert, _type);
         alert.showAndWait();
+    }
+
+    /**
+     * Style a dialog using custom CSS style sheet.
+     * Looks for a CSS file with the name 'dialog-style-level.css', where level is the type
+     * of dialog (e.g. AlertType#ERROR) in lower-case.
+     *
+     * @param _alertBox to style
+     * @param _type alert type
+     */
+    private static void styleDialog(Alert _alertBox, AlertType _type) {
+        if (_alertBox == null || _type == null) {
+            return;
+        }
+
+        String cssName = "dialog-style-" + _type.name().toLowerCase() + ".css";
+
+        URL resource = FxDialogUtils.class.getClassLoader().getResource(cssName);
+        if (resource != null) {
+            _alertBox.getDialogPane().getScene().getStylesheets().add(cssName);
+        }
     }
 
     /**

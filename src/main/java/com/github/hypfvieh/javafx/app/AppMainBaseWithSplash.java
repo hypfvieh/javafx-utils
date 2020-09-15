@@ -3,6 +3,7 @@ package com.github.hypfvieh.javafx.app;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 
@@ -44,6 +45,7 @@ import com.github.hypfvieh.javafx.other.AppLock.AppAlreadyRunningException;
 import com.github.hypfvieh.javafx.ui.BaseWindowController;
 import com.github.hypfvieh.javafx.utils.StringHelper;
 import com.github.hypfvieh.javafx.utils.Translator;
+import com.github.hypfvieh.javafx.windows.interfaces.ICssStyle;
 import com.github.hypfvieh.javafx.windows.interfaces.ICustomInitialize;
 import com.github.hypfvieh.javafx.windowsaver.WindowPositionSaver;
 
@@ -228,6 +230,13 @@ public abstract class AppMainBaseWithSplash extends Application {
         Scene scene = new Scene(root);
 
         scene.getStylesheets().addAll(FxWindowUtils.getCssThemes());
+
+        if (mainController instanceof ICssStyle) {
+            List<String> cssStyleFiles = ((ICssStyle) mainController).getCssStyleFiles();
+            if (cssStyleFiles != null && !cssStyleFiles.isEmpty()) {
+                scene.getStylesheets().addAll(cssStyleFiles);
+            }
+        }
 
         _stage.setTitle(config.getMainWindowTitle());
         _stage.setUserData(mainController);
