@@ -2,8 +2,6 @@ package com.github.hypfvieh.javafx.app;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
-import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 
@@ -13,11 +11,8 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.concurrent.Worker;
-import javafx.fxml.FXMLLoader;
-import javafx.fxml.JavaFXBuilderFactory;
 import javafx.geometry.Insets;
 import javafx.geometry.Rectangle2D;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Label;
@@ -33,21 +28,17 @@ import javafx.stage.Modality;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-import javafx.stage.WindowEvent;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.github.hypfvieh.javafx.fx.FxDialogUtils;
 import com.github.hypfvieh.javafx.fx.FxWindowUtils;
+import com.github.hypfvieh.javafx.fx.FxWindowUtils.WindowOptions;
 import com.github.hypfvieh.javafx.other.AppLock;
 import com.github.hypfvieh.javafx.other.AppLock.AppAlreadyRunningException;
-import com.github.hypfvieh.javafx.ui.BaseWindowController;
 import com.github.hypfvieh.javafx.utils.StringHelper;
 import com.github.hypfvieh.javafx.utils.Translator;
-import com.github.hypfvieh.javafx.windows.interfaces.ICssStyle;
-import com.github.hypfvieh.javafx.windows.interfaces.ICustomInitialize;
-import com.github.hypfvieh.javafx.windowsaver.WindowPositionSaver;
 
 /**
  * A base application class to show splash screen and handle startup/teardown actions as well as exception handling on
@@ -211,71 +202,29 @@ public abstract class AppMainBaseWithSplash extends Application {
      * @param _stage primary stage
      * @throws IOException on error
      */
-    void showMainStage(Stage _stage) throws IOException {
+    void showMainStage(Stage _stage) throws Exception {
 
         Platform.setImplicitExit(false);
 
-        URL url = getClass().getResource(config.getMainWindowFxml());
-
-        FXMLLoader fxmlloader = new FXMLLoader();
-        fxmlloader.setLocation(url);
-        fxmlloader.setBuilderFactory(new JavaFXBuilderFactory());
-
-        fxmlloader.load(url.openStream());
-
-        final BaseWindowController mainController = (BaseWindowController) fxmlloader.getController();
-        mainController.setControllerStage(_stage);
-        Parent root = fxmlloader.getRoot();
-
-        Scene scene = new Scene(root);
-
-        scene.getStylesheets().addAll(FxWindowUtils.getCssThemes());
-
-        if (mainController instanceof ICssStyle) {
-            List<String> cssStyleFiles = ((ICssStyle) mainController).getCssStyleFiles();
-            if (cssStyleFiles != null && !cssStyleFiles.isEmpty()) {
-                scene.getStylesheets().addAll(cssStyleFiles);
-            }
-        }
-
-        _stage.setTitle(config.getMainWindowTitle());
-        _stage.setUserData(mainController);
-
-        if (config.getAppIcon() != null) {
-            try (InputStream stream = AppMainBaseWithSplash.class.getClassLoader().getResourceAsStream(config.getAppIcon())) {
-                if (stream != null) {
-                    _stage.getIcons().add(new Image(stream));
+        WindowOptions windowOptions = new WindowOptions();
+        windowOptions
+            .withResizeable(true)
+            .withIcon(config.getAppIcon())
+            .withRunOnClose(() -> {
+                try {
+                    Runnable shutdownTaskAction = shutdownTaskAction(_stage);
+                    if (shutdownTaskAction != null) {
+                        shutdownTaskAction.run();
+                    }
+                } catch (Exception _ex) {
+                    LoggerFactory.getLogger(getClass()).error("Error while closing controller", _ex);
                 }
-            }
-        }
+                Platform.setImplicitExit(true);
 
-        _stage.initModality(Modality.NONE);
+            });
 
-        // do something when window is closed (application quits)
-        _stage.setOnCloseRequest((WindowEvent we) -> {
-            try {
-                Runnable shutdownTaskAction = shutdownTaskAction(_stage);
-                if (shutdownTaskAction != null) {
-                    shutdownTaskAction.run();
-                }
-            } catch (Exception _ex) {
-                LoggerFactory.getLogger(getClass()).error("Error while closing controller", _ex);
-            }
-            // stop JavaFX universe when this window is closed
-            Platform.setImplicitExit(true);
-        });
-
-        _stage.setScene(scene);
-
-        _stage.setOnShown(ev -> {
-            if (mainController instanceof ICustomInitialize) {
-                ((ICustomInitialize) mainController).customInitialize();
-            }
-        });
-
-        _stage.show();
-        WindowPositionSaver.restoreWindowPosition(mainController, _stage, root);
-
+        FxWindowUtils.showWindowWithValueAndReturn(_stage, getClass(), true, config.getMainWindowFxml(), false, Modality.NONE,
+                windowOptions, config.getMainWindowTitle(), null, null);
     }
 
     /**
@@ -336,7 +285,7 @@ public abstract class AppMainBaseWithSplash extends Application {
                 _initStage.hide();
                 try {
                     showMainStage(new Stage(StageStyle.DECORATED));
-                } catch (IOException _ex) {
+                } catch (Exception _ex) {
                     Consumer<Exception> handleOtherStartupExceptions = handleOtherStartupExceptions();
                     if (handleOtherStartupExceptions != null) {
                         handleOtherStartupExceptions.accept(_ex);

@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.event.EventHandler;
@@ -22,6 +23,7 @@ import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -91,12 +93,14 @@ public class FxWindowUtils {
     /**
      * Show a window or dialog with certain features like setting and getting values.
      * <p>
-     * To provide a custom icon for the dialog, add an image as resource in a subfolder called "images".<br>
+     * To provide a custom icon for the dialog either set the {@link WindowOptions#icon} property or add an image as resource in a subfolder called "images".<br>
      * The image should have the same name as the controller class and end with '.png'.
      * <p>
      * Please note: Getting a value only works if the window is blocking (wait = true).
      *
-     * @param _parentWindow parent window
+     * @param _rootStage stage to use
+     * @param _rootClass class to use to find fxml files
+     * @param _useRootStage use the given rootStage to show window instead of creating a new stage, this is mainly imported if method is used to show the primary stage when FX application starts
      * @param _fXmlFile FXML UI file to load
      * @param _wait if true, block until window is closed, false to continue (false will not allow you to get values)
      * @param _modal modality mode
@@ -107,20 +111,18 @@ public class FxWindowUtils {
      * @param _obj object to pass to the window controller (only possible if controller implements {@link IObjectConsumer})
      *              Use null to not pass any value to the controller
      * @return retrieved value of resultClass type or null
+     *
      * @param <T> input object class
      * @param <C> output object class
      */
     @SuppressWarnings("unchecked")
-    public static <B extends Initializable, T, C> C showWindowWithValueAndReturn(B _parentWindow, String _fXmlFile, boolean _wait, Modality _modal,
+    public static <T, C> C showWindowWithValueAndReturn(Stage _rootStage, Class<?> _rootClass, boolean _useRootStage, String _fXmlFile, boolean _wait, Modality _modal,
             WindowOptions _sizeSettings, String _title, Class<C> _resultClass, T _obj) {
 
-        Stage rootStage = null;
-        Class<?> rootClass = FxWindowUtils.class;
-        if (_parentWindow != null && _parentWindow instanceof BaseWindowController) {
-            rootStage = ((BaseWindowController) _parentWindow).getControllerStage();
-            rootClass = rootStage != null ? rootStage.getClass() : FxWindowUtils.class;
+        Class<?> rootClass = _rootClass;
+        if (_rootClass == null) {
+            rootClass = FxWindowUtils.class;
         }
-
         try {
             URL url = rootClass.getClassLoader().getResource(_fXmlFile);
             if (url == null) {
@@ -133,7 +135,8 @@ public class FxWindowUtils {
 
             Object controller = fxmlloader.getController();
 
-            Stage stage = new Stage();
+            Stage stage = _useRootStage ? _rootStage : new Stage();
+
             stage.setUserData(controller);
 
             if (controller instanceof BaseWindowController) {
@@ -183,12 +186,21 @@ public class FxWindowUtils {
                 stage.setHeight(_sizeSettings.getHeight());
             }
 
-            InputStream imgStream = FxWindowUtils.class.getClassLoader().getResourceAsStream("images/" + controller.getClass().getSimpleName() + ".png");
-            if (imgStream == null && default_window_icon != null) {
-                imgStream = FxWindowUtils.class.getClassLoader().getResourceAsStream(default_window_icon);
-            }
-            if (imgStream != null) {
-                stage.getIcons().add(new Image(imgStream));
+            List<String> possibleIcons = List.of(_sizeSettings.getIcon(), "images/" + controller.getClass().getSimpleName() + ".png", default_window_icon);
+            // find a proper icon and set it, if none is found, no icon will be set
+            for (String iconFile : possibleIcons) {
+                if (iconFile == null || iconFile.isBlank()) {
+                    continue;
+                }
+                if (FxWindowUtils.class.getClassLoader().getResource(iconFile) == null) {
+                    continue;
+                }
+                try (InputStream imgStream = FxWindowUtils.class.getClassLoader().getResourceAsStream(iconFile)) {
+                    if (imgStream != null) {
+                        stage.getIcons().add(new Image(imgStream));
+                        break; // we have an icon
+                    }
+                }
             }
 
             Scene scene = new Scene(root);
@@ -225,16 +237,15 @@ public class FxWindowUtils {
             stage.setScene(scene);
 
             // center window to parent stage
-            if (rootStage != null) {
+            if (!_useRootStage && _rootStage != null) {
                 // show stage and hide it again, required to set the height/width of the new stage for calculation
                 stage.show();
                 stage.hide();
-                stage.setX((rootStage.getX() + rootStage.getWidth() / 2 - stage.getWidth() / 2) + 10);
-                stage.setY((rootStage.getY() + rootStage.getHeight() / 2 - stage.getHeight() / 2) + 10);
+                stage.setX((_rootStage.getX() + _rootStage.getWidth() / 2 - stage.getWidth() / 2) + 10);
+                stage.setY((_rootStage.getY() + _rootStage.getHeight() / 2 - stage.getHeight() / 2) + 10);
             }
 
             AtomicBoolean systemClosedButtonUsed = new AtomicBoolean(false);
-
             if (controller instanceof ISaveOnClose) {
                 stage.setOnCloseRequest(ev -> {
                     try {
@@ -252,7 +263,9 @@ public class FxWindowUtils {
                         if (controller instanceof BaseWindowController) {
                             systemClosedButtonUsed.set(((BaseWindowController) stage.getUserData()).isClosedByWindowManager());
                         }
-
+                        if (_sizeSettings.getRunOnClose() != null) {
+                            _sizeSettings.getRunOnClose().run();
+                        }
                     } catch (Exception _ex) {
                         new RuntimeException("Error executing closing action.", _ex);
                     }
@@ -266,12 +279,18 @@ public class FxWindowUtils {
                         if (action != null) {
                             action.run();
                         }
+                        if (_sizeSettings.getRunOnClose() != null) {
+                            _sizeSettings.getRunOnClose().run();
+                        }
                     }
                     WindowPositionSaver.saveWindowPosition(((Initializable) controller), stage);
                 });
             } else {
                 stage.setOnCloseRequest(ev -> {
                     WindowPositionSaver.saveWindowPosition(((Initializable) controller), stage);
+                    if (_sizeSettings.getRunOnClose() != null) {
+                        _sizeSettings.getRunOnClose().run();
+                    }
                 });
             }
 
@@ -280,6 +299,9 @@ public class FxWindowUtils {
             stage.setOnShown(ev -> {
                 if (controller instanceof ICustomInitialize) {
                     ((ICustomInitialize) controller).customInitialize();
+                }
+                if (_sizeSettings.getRunOnShow() != null) {
+                    _sizeSettings.getRunOnShow().run();
                 }
             });
 
@@ -306,6 +328,44 @@ public class FxWindowUtils {
             LOGGER.error("Error while showing window:", _ex);
         }
         return null;
+    }
+
+    /**
+     * Show a window or dialog with certain features like setting and getting values.
+     * <p>
+     * To provide a custom icon for the dialog either set the {@link WindowOptions#icon} property or add an image as resource in a subfolder called "images".<br>
+     * The image should have the same name as the controller class and end with '.png'.
+     * <p>
+     * Please note: Getting a value only works if the window is blocking (wait = true).
+     *
+     * @param _parentWindow parent window
+     * @param _fXmlFile FXML UI file to load
+     * @param _wait if true, block until window is closed, false to continue (false will not allow you to get values)
+     * @param _modal modality mode
+     * @param _sizeSettings window sizing settings
+     * @param _title title for the window
+     * @param _resultClass result class of object retrieved from window controller (only possible if controller implements {@link IResultProvider})
+     *                      Use null here to disable retrieval of values
+     * @param _obj object to pass to the window controller (only possible if controller implements {@link IObjectConsumer})
+     *              Use null to not pass any value to the controller
+     * @return retrieved value of resultClass type or null
+     * @param <T> input object class
+     * @param <C> output object class
+     * @param <B> window controller implementing {@link Initializable}
+     */
+    public static <B extends Initializable, T, C> C showWindowWithValueAndReturn(B _parentWindow, String _fXmlFile, boolean _wait, Modality _modal,
+            WindowOptions _sizeSettings, String _title, Class<C> _resultClass, T _obj) {
+
+        Stage rootStage = null;
+        Class<?> rootClass = FxWindowUtils.class;
+
+        if (_parentWindow != null && _parentWindow instanceof BaseWindowController) {
+            rootStage = ((BaseWindowController) _parentWindow).getControllerStage();
+            rootClass = rootStage != null ? rootStage.getClass() : FxWindowUtils.class;
+        }
+
+        return showWindowWithValueAndReturn(rootStage, rootClass, false, _fXmlFile, _wait, _modal,
+                _sizeSettings, _title,  _resultClass, _obj);
     }
 
     /**
@@ -415,7 +475,6 @@ public class FxWindowUtils {
             if (_stage.getUserData() instanceof BaseWindowController) {
                 ((BaseWindowController) _stage.getUserData()).setClosedByWindowManager(false);
             }
-
             if (_stage.getUserData() instanceof ISaveOnClose) {
                 ISaveOnClose x = ((ISaveOnClose) _stage.getUserData());
                 if (x.saveAndClose()) {
@@ -423,6 +482,12 @@ public class FxWindowUtils {
                 }
             } else {
                 _stage.close();
+            }
+
+            if (Stage.getWindows().isEmpty()) { // no more windows, close application
+                // fire close event to call close handlers
+                _stage.getOnCloseRequest().handle(new WindowEvent(_stage, javafx.stage.WindowEvent.WINDOW_CLOSE_REQUEST));
+                Platform.setImplicitExit(true);
             }
         }
     }
@@ -480,8 +545,14 @@ public class FxWindowUtils {
         private boolean alwaysOnTop;
         /** Window will be closed when it is no longer the active window. Will be ignored if alwaysOnTop is enabled. */
         private boolean closeOnFocusLost;
+        /** Window icon. */
+        private String icon;
+        /** Called when window gets closed (after IBlockClose, ISaveOnClose). */
+        private Runnable runOnClose;
+        /** Called when window gets shown (after ICustomInitialize). */
+        private Runnable runOnShow;
 
-        private WindowOptions() {}
+        public WindowOptions() {}
 
         public static WindowOptions build() {
             return new WindowOptions();
@@ -540,6 +611,35 @@ public class FxWindowUtils {
             closeOnFocusLost = _closeOnFocusLost;
             return this;
         }
+
+        public Runnable getRunOnClose() {
+            return runOnClose;
+        }
+
+        public WindowOptions withRunOnClose(Runnable _runOnClose) {
+            runOnClose = _runOnClose;
+            return this;
+        }
+
+        public Runnable getRunOnShow() {
+            return runOnShow;
+        }
+
+        public WindowOptions withRunOnShow(Runnable _runOnShow) {
+            runOnShow = _runOnShow;
+            return this;
+        }
+
+        public String getIcon() {
+            return icon;
+        }
+
+        public WindowOptions withIcon(String _icon) {
+            icon = _icon;
+            return this;
+        }
+
+
     }
 
 }
