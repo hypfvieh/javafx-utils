@@ -1,5 +1,8 @@
 package com.github.hypfvieh.javafx.utils;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+
 /**
  * Helper for string handling.
  *
@@ -40,4 +43,19 @@ public class StringHelper {
         return _str.trim().isEmpty();
     }
 
+    /**
+     * Return the stack trace of the given throwable as String.
+     *
+     * @param _throwable throwable/exception
+     * @return stack trace as String or null if input was null
+     */
+    public static String getStackTrace(Throwable _throwable) {
+        if (_throwable == null) {
+            return null;
+        }
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw, true);
+        _throwable.printStackTrace(pw);
+        return sw.getBuffer().toString();
+    }
 }

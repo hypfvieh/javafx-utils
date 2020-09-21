@@ -10,8 +10,15 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
+import javafx.stage.Stage;
 
+import com.github.hypfvieh.javafx.utils.StringHelper;
 import com.github.hypfvieh.javafx.utils.Translator;
 
 /**
@@ -48,13 +55,8 @@ public class FxDialogUtils {
      */
     public static ButtonData showConfirmYesNo(AlertType _type, String _msg, String _title, String _subTitle, String _btnYesCaption,
             String _btnNoCaption, String _btnCancel) {
-        Alert alert = new Alert(_type);
-        alert.setTitle(_title);
-        alert.setHeaderText(_subTitle);
-        alert.setContentText(_msg);
 
-        styleDialog(alert, _type);
-        alert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
+        Alert alert = createDialog(_type, _title, _subTitle, _msg);
 
         ButtonType btnYes = new ButtonType(_btnYesCaption, ButtonData.YES);
         ButtonType btnNo = new ButtonType(_btnNoCaption, ButtonData.NO);
@@ -80,6 +82,21 @@ public class FxDialogUtils {
      * @param _msg message to display
      */
     public static void showDialog(AlertType _type, String _title, String _subTitle, String _msg) {
+        Alert alert = createDialog(_type, _title, _subTitle, _msg);
+        alert.showAndWait();
+    }
+
+    /**
+     * Create a new dialog of the given type with given title, subtitle and message.
+     *
+     * @param _type alert type
+     * @param _title title of dialog
+     * @param _subTitle subtitle in dialog
+     * @param _msg message to display
+     *
+     * @return Alert dialog instance
+     */
+    public static Alert createDialog(AlertType _type, String _title, String _subTitle, String _msg) {
         Alert alert = new Alert(_type);
         alert.setTitle(_title);
         alert.setHeaderText(_subTitle);
@@ -87,7 +104,22 @@ public class FxDialogUtils {
         alert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
         alert.getDialogPane().setMinWidth(500);
         styleDialog(alert, _type);
-        alert.showAndWait();
+        return alert;
+    }
+
+    /**
+     * Shows a custom dialog with an expandable textbox with exception details.
+     *
+     * @param _type alert type
+     * @param _title title of dialog
+     * @param _subTitle subtitle in dialog
+     * @param _msg message to display
+     * @param _detailsBtnText text on the button to show more details (e.g. the stack trace)
+     * @param _ex throwable to show in textbox
+     */
+    public static void showExceptionDialog(AlertType _type, String _title, String _subTitle, String _msg, String _detailsBtnText, Throwable _ex) {
+        Alert createDialog = createDialog(_type, _title, _subTitle, _msg);
+        setExpandableContent(_detailsBtnText, StringHelper.getStackTrace(_ex), createDialog);
     }
 
     /**
@@ -153,6 +185,43 @@ public class FxDialogUtils {
                 });
             }
         }).start();
+    }
 
+    /**
+     * Manipulate content of a dialog to add an expandable textbox.
+     *
+     * @param _detailtBtnText caption of the button for expansion
+     * @param _text text to display in textarea
+     * @param _dialog dialog to modify
+     */
+    public static void setExpandableContent(String _detailtBtnText, String _text, Dialog<?> _dialog) {
+        if (_dialog == null) {
+            return;
+        }
+
+        Label label = new Label(_detailtBtnText);
+
+        TextArea textArea = new TextArea(_text);
+        textArea.setEditable(false);
+        textArea.setWrapText(true);
+
+        textArea.setMaxWidth(Double.MAX_VALUE);
+        textArea.setMaxHeight(Double.MAX_VALUE);
+        GridPane.setVgrow(textArea, Priority.ALWAYS);
+        GridPane.setHgrow(textArea, Priority.ALWAYS);
+
+        GridPane expandableContent = new GridPane();
+        expandableContent.setMaxWidth(Double.MAX_VALUE);
+        expandableContent.add(label, 0, 0);
+        expandableContent.add(textArea, 0, 1);
+        _dialog.getDialogPane().setExpandableContent(expandableContent);
+
+        _dialog.getDialogPane().expandedProperty().addListener((observable) -> {
+            Platform.runLater(() -> {
+                _dialog.getDialogPane().requestLayout();
+                Stage stage = (Stage)_dialog.getDialogPane().getScene().getWindow();
+                stage.sizeToScene();
+            });
+        });
     }
 }
