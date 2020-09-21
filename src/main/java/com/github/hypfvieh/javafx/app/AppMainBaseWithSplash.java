@@ -192,7 +192,7 @@ public abstract class AppMainBaseWithSplash extends Application {
         }
 
         showSplash(_stage, task);
-        new Thread(task).start();
+        new Thread(task, "Application Startup Task").start();
 
     }
 

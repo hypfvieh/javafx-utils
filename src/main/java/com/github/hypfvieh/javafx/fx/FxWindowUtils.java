@@ -186,7 +186,11 @@ public class FxWindowUtils {
                 stage.setHeight(_sizeSettings.getHeight());
             }
 
-            List<String> possibleIcons = List.of(_sizeSettings.getIcon(), "images/" + controller.getClass().getSimpleName() + ".png", default_window_icon);
+            List<String> possibleIcons = new ArrayList<>();
+            possibleIcons.add(_sizeSettings.getIcon());
+            possibleIcons.add("images/" + controller.getClass().getSimpleName() + ".png");
+            possibleIcons.add(default_window_icon);
+
             // find a proper icon and set it, if none is found, no icon will be set
             for (String iconFile : possibleIcons) {
                 if (iconFile == null || iconFile.isBlank()) {
