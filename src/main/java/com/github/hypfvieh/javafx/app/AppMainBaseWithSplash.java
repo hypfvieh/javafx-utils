@@ -181,6 +181,7 @@ public abstract class AppMainBaseWithSplash extends Application {
                             task.getException().getLocalizedMessage());
                 }
 
+                _stage.hide();
                 // initialization of java fx failed somehow, use swing error dialog
                 JOptionPane.showMessageDialog(null,
                         msg,
