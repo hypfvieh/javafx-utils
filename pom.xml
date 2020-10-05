@@ -1,29 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
-	<modelVersion>4.0.0</modelVersion>
-	<groupId>com.github.hypfvieh</groupId>
-	<artifactId>javafx-utils</artifactId>
-	<version>11.0.0-SNAPSHOT</version>
-	<packaging>jar</packaging>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.github.hypfvieh</groupId>
+    <artifactId>javafx-utils</artifactId>
+    <version>11.0.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
 
-	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<javafx.version>14.0.2.1</javafx.version>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <javafx.version>14.0.2.1</javafx.version>
         <junit.version>5.6.2</junit.version>
         <hibernate-version>5.4.21.Final</hibernate-version>
-	</properties>
+    </properties>
 
-	<name>${project.artifactId}</name>
+    <name>${project.artifactId}</name>
 
-	<description>
-		Utilities and helper classes to develop JavaFX based applications.
-	</description>
+    <description>
+        Utilities and helper classes to develop JavaFX based applications.
+    </description>
 
-	<build>
-		<plugins>
+    <build>
+        <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
@@ -39,8 +39,8 @@
                     </systemPropertyVariables>
                 </configuration>
             </plugin>
-		
-			<plugin>
+
+            <plugin>
                 <artifactId>maven-enforcer-plugin</artifactId>
                 <version>3.0.0-M3</version>
                 <executions>
@@ -59,38 +59,38 @@
                         </requireMavenVersion>
                     </rules>
                 </configuration>                
-            </plugin>        		
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.8.1</version>
-				<configuration>
-					<release>11</release>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-jar-plugin</artifactId>
-				<version>3.2.0</version>
-				<executions>
-					<execution>
-						<goals>
-							<goal>test-jar</goal>
-						</goals>
-					</execution>
-				</executions>
-				<configuration>
-					<archive>
-						<manifest>
-							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-						</manifest>
-					</archive>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.1</version>
+                <configuration>
+                    <release>11</release>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.2.0</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>test-jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
-	<dependencies>
+    <dependencies>
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-base</artifactId>
@@ -115,15 +115,15 @@
            <version>${hibernate-version}</version>
            <scope>provided</scope>
         </dependency>
-		
-		<!-- Logging -->
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-api</artifactId>
-			<version>1.7.30</version>
-		</dependency>
 
-		<dependency>
+        <!-- Logging -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.7.30</version>
+        </dependency>
+
+        <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-core</artifactId>
             <version>1.2.3</version>
@@ -180,12 +180,12 @@
             <version>jdk-12.0.1+2</version>
             <scope>test</scope>
         </dependency>
-	</dependencies>
+    </dependencies>
 
-	<scm>
-		<connection>scm:git:https://github.com/hypfvieh/javafx-utils.git</connection>
-		<developerConnection>scm:git:https://github.com/hypfvieh/javafx-utils.git</developerConnection>
-		<url>https://github.com/hypfvieh/javafx-utils.git</url>
-	</scm>
+    <scm>
+        <connection>scm:git:https://github.com/hypfvieh/javafx-utils.git</connection>
+        <developerConnection>scm:git:https://github.com/hypfvieh/javafx-utils.git</developerConnection>
+        <url>https://github.com/hypfvieh/javafx-utils.git</url>
+    </scm>
 
 </project>

@@ -38,11 +38,30 @@ import com.github.hypfvieh.javafx.windows.interfaces.IResultProvider;
 import com.github.hypfvieh.javafx.windows.interfaces.ISaveOnClose;
 import com.github.hypfvieh.javafx.windowsaver.WindowPositionSaver;
 
+/**
+ * Utilities to show, close or modify JavaFx windows.
+ *
+ * @author hypfvieh
+ * @since v11.0.0 - 2020-10-05
+ */
 public class FxWindowUtils {
     private static final Logger   LOGGER = LoggerFactory.getLogger(FxWindowUtils.class);
 
     private static final List<String> CSS_THEMES = new ArrayList<>();
     private static String default_window_icon = null;
+
+    /** It is required to set this to false when using TestFx, otherwise TestFx will get stuck. */
+    private static boolean exitAfterLastWindow = true;
+
+    /**
+     * Enable/Disable application termination if last JavaFx window gets closed.
+     * <p>
+     * <strong>Note:</strong> When using TestFx, set this to false!
+     * @param _exit true to enable, false to disable
+     */
+    public static void setExitAfterLastWindow(boolean _exit) {
+        exitAfterLastWindow = _exit;
+    }
 
     /**
      * Add a new CSS Style sheet file to the list of CSS Style sheets which will be added to every new created window.
@@ -488,7 +507,7 @@ public class FxWindowUtils {
                 _stage.close();
             }
 
-            if (Stage.getWindows().isEmpty()) { // no more windows, close application
+            if (exitAfterLastWindow && Stage.getWindows().isEmpty()) { // no more windows, close application
                 // fire close event to call close handlers
                 _stage.getOnCloseRequest().handle(new WindowEvent(_stage, javafx.stage.WindowEvent.WINDOW_CLOSE_REQUEST));
                 Platform.setImplicitExit(true);

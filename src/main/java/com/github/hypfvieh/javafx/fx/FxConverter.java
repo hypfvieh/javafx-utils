@@ -6,6 +6,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.function.UnaryOperator;
 import java.util.regex.Pattern;
 
@@ -128,5 +129,29 @@ public class FxConverter {
           .toInstant());
     }
 
+    /**
+     * Create a Converter for years which will handle null and negative values.
+     *
+     * @param _anyTitle String to show when value is smaller than 0 or null (cannot be null!)
+     * @return Converter
+     */
+    public static StringConverter<Integer> createNullawareComboBoxConverter(String _anyTitle) {
+        Objects.requireNonNull(_anyTitle, "Null placeholder text cannot be null");
+        return new StringConverter<>() {
+
+            @Override
+            public String toString(Integer _year) {
+                return (_year == null || _year <= -1) ? _anyTitle : String.valueOf(_year);
+            }
+
+            @Override
+            public Integer fromString(String _string) {
+                if (_string != null && _string.matches("^-?[0-9]+$")) {
+                    return Integer.valueOf(_string);
+                }
+                return -1;
+            }
+        };
+    }
 
 }

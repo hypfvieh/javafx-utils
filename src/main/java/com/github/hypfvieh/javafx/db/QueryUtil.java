@@ -1,5 +1,6 @@
 package com.github.hypfvieh.javafx.db;
 
+import java.io.Closeable;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -19,7 +20,7 @@ import org.slf4j.LoggerFactory;
  * @author hypfvieh
  * @since v11.0.0 - 2020-09-11
  */
-public class QueryUtil implements AutoCloseable {
+public class QueryUtil implements Closeable {
     private final Logger logger;
     private Session defaultSession;
 

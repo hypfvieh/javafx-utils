@@ -1,5 +1,6 @@
 package com.github.hypfvieh.javafx.db;
 
+import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,7 +22,7 @@ import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
  * @author hypfvieh
  * @since v11.0.0 - 2020-09-11
  */
-public class DbManager implements AutoCloseable {
+public class DbManager implements Closeable {
     private static final SessionFactory sessionFactory = DbManager.initDb();
 
     private QueryUtil queryUtil = new QueryUtil(sessionFactory);

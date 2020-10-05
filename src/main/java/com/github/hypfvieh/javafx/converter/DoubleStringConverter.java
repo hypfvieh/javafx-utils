@@ -9,7 +9,7 @@ import javafx.util.StringConverter;
 import com.github.hypfvieh.javafx.utils.StringHelper;
 
 /**
- * Converter for TextFields/Spinner to convert currency formatted {@link Double} to and from {@link String}.
+ * Converter for TextFields/Spinner to convert {@link Double} to and from {@link String}.
  *
  * @author hypfvieh
  * @since v11.0.0 - 2020-09-11

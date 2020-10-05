@@ -1,4 +1,4 @@
-package com.github.hypfvieh.javafx.controls.tables;
+package com.github.hypfvieh.javafx.controls.table;
 
 import java.util.HashMap;
 import java.util.Map;
