@@ -23,7 +23,6 @@ import javafx.scene.layout.Background;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.paint.Paint;
 import javafx.stage.Modality;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
@@ -53,9 +52,6 @@ public abstract class AppMainBaseWithSplash extends Application {
     private final Translator translator           = new Translator("AppMainBaseWithSplash");
 
     private SplashAppConfig config;
-
-    private Paint            progressLabelFgColor = Color.ORANGERED;
-    private String           progressBarStyle     = "-fx-accent: orange;";
 
     public AppMainBaseWithSplash() {
         super();
@@ -92,13 +88,22 @@ public abstract class AppMainBaseWithSplash extends Application {
     public abstract Task<Void> startupTaskAction(Stage _stage);
 
     /**
-     * Task which will be executed when application is closed.
+     * Runnable which will be executed when application is closed.
      *
      * @param _stage the primary stage
      *
      * @return runnable or null to do nothing
      */
-    public abstract Runnable shutdownTaskAction(Stage _stage);
+    public abstract Runnable onMainWindowCloseAction(Stage _stage);
+
+    /**
+     * Runnable which will be executed when application window is shown.
+     *
+     * @param _stage the primary stage
+     *
+     * @return runnable or null to do nothing
+     */
+    public abstract Runnable onMainWindowShownAction(Stage _stage);
 
     /**
      * Called when application is started with {@link AppLock} support and there was already an instance running.
@@ -213,15 +218,25 @@ public abstract class AppMainBaseWithSplash extends Application {
             .withIcon(config.getAppIcon())
             .withRunOnClose(() -> {
                 try {
-                    Runnable shutdownTaskAction = shutdownTaskAction(_stage);
+                    Runnable shutdownTaskAction = onMainWindowCloseAction(_stage);
                     if (shutdownTaskAction != null) {
                         shutdownTaskAction.run();
                     }
                 } catch (Exception _ex) {
-                    LoggerFactory.getLogger(getClass()).error("Error while closing controller", _ex);
+                    LoggerFactory.getLogger(getClass()).error("Error while closing window", _ex);
                 }
                 Platform.setImplicitExit(true);
 
+            })
+            .withRunOnShow(() -> {
+                try {
+                    Runnable showAction = onMainWindowShownAction(_stage);
+                    if (showAction != null) {
+                        showAction.run();
+                    }
+                } catch (Exception _ex) {
+                    LoggerFactory.getLogger(getClass()).error("Error while showing window", _ex);
+                }
             });
 
         FxWindowUtils.showWindowWithValueAndReturn(_stage, getClass(), true, config.getMainWindowFxml(), false, Modality.NONE,
@@ -320,11 +335,11 @@ public abstract class AppMainBaseWithSplash extends Application {
 
         Label progressLabel = new Label();
         VBox.setMargin(progressLabel, new Insets(0, 0, 0, 5));
-        progressLabel.setTextFill(progressLabelFgColor);
-        progressLabel.setBackground(Background.EMPTY);
+        progressLabel.setTextFill(config.getProgressLabelTextColor());
+        progressLabel.setBackground(config.getProgressLabelBackground());
         splashLayout.getChildren().add(progressLabel);
 
-        progressBar.setStyle(progressBarStyle);
+        progressBar.setStyle(config.getProgressBarCssStyle());
         progressBar.setMaxWidth(Double.MAX_VALUE);
 
         progressBar.progressProperty().bind(_task.progressProperty());
@@ -348,16 +363,86 @@ public abstract class AppMainBaseWithSplash extends Application {
      * @since v11.0.0 - 2020-09-12
      */
     protected static class SplashAppConfig {
-        private final String mainWindowTitle;
         private final String mainWindowFxml;
         private final String splashImage;
-        private final String appIcon;
 
-        public SplashAppConfig(String _mainWindowTitle, String _mainWindowFxml, String _splashImage, String _appIcon) {
-            mainWindowTitle = _mainWindowTitle;
+        private String mainWindowTitle;
+        private String appIcon;
+        private String splashWindowTitle;
+
+        private Color progressLabelTextColor = Color.ORANGERED;
+        private Background progressLabelBackground = Background.EMPTY;
+        private String progressBarCssStyle = "-fx-accent: orange;";
+
+        public SplashAppConfig(String _mainWindowFxml, String _splashImage) {
             mainWindowFxml = _mainWindowFxml;
             splashImage = _splashImage;
-            appIcon = _appIcon;
+        }
+
+        /**
+         * Title to set on main window.
+         *
+         * @param _title title
+         * @return this
+         */
+        public SplashAppConfig withMainWindowTitle(String _title) {
+            mainWindowTitle = _title;
+            return this;
+        }
+
+        /**
+         * Title to set to splash window (will only be visible in taskbar).
+         *
+         * @param _title title
+         * @return this
+         */
+        public SplashAppConfig withSplashWindowTitle(String _title) {
+            splashWindowTitle = _title;
+            return this;
+        }
+
+        /**
+         * Icon to set to main application/splash window scene.
+         *
+         * @param _iconPath icon with path found in classpath
+         * @return this
+         */
+        public SplashAppConfig withAppIcon(String _iconPath) {
+            appIcon = _iconPath;
+            return this;
+        }
+
+        /**
+         * Color of the progress label text (default: {@link Color#ORANGERED})
+         *
+         * @param _color color
+         * @return this
+         */
+        public SplashAppConfig withProgressLabelTextColor(Color _color) {
+            progressLabelTextColor = _color;
+            return this;
+        }
+
+        /**
+         * Background style of progress label (default: {@link Background#EMPTY}).
+         *
+         * @param _bg background
+         * @return this
+         */
+        public SplashAppConfig withProgressLabelBackground(Background _bg) {
+            progressLabelBackground = _bg;
+            return this;
+        }
+
+        /**
+         * Progressbar CSS Style (default: -fx-accent: orange;).
+         *
+         * @param _cssStyle css style
+         * @return this
+         */
+        public SplashAppConfig withProgressBarCssStyle(String _cssStyle) {
+            progressBarCssStyle = _cssStyle;
+            return this;
         }
 
         public String getMainWindowTitle() {
@@ -374,6 +459,22 @@ public abstract class AppMainBaseWithSplash extends Application {
 
         public String getAppIcon() {
             return appIcon;
+        }
+
+        public String getSplashWindowTitle() {
+            return splashWindowTitle;
+        }
+
+        public Color getProgressLabelTextColor() {
+            return progressLabelTextColor;
+        }
+
+        public Background getProgressLabelBackground() {
+            return progressLabelBackground;
+        }
+
+        public String getProgressBarCssStyle() {
+            return progressBarCssStyle;
         }
 
     }
