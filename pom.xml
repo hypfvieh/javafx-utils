@@ -4,10 +4,14 @@
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
+    <packaging>jar</packaging>
+
     <groupId>com.github.hypfvieh</groupId>
     <artifactId>javafx-utils</artifactId>
     <version>11.0.0-SNAPSHOT</version>
-    <packaging>jar</packaging>
+
+    <name>${project.artifactId}</name>
+    <url>https://github.com/hypfvieh/${project.artifactId}</url>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -15,8 +19,6 @@
         <junit.version>5.6.2</junit.version>
         <hibernate-version>5.4.21.Final</hibernate-version>
     </properties>
-
-    <name>${project.artifactId}</name>
 
     <description>
         Utilities and helper classes to develop JavaFX based applications.
@@ -90,6 +92,17 @@
         </plugins>
     </build>
 
+    <distributionManagement>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <repository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>
+    
     <dependencies>
         <dependency>
             <groupId>org.openjfx</groupId>
@@ -183,9 +196,23 @@
     </dependencies>
 
     <scm>
-        <connection>scm:git:https://github.com/hypfvieh/javafx-utils.git</connection>
-        <developerConnection>scm:git:https://github.com/hypfvieh/javafx-utils.git</developerConnection>
-        <url>https://github.com/hypfvieh/javafx-utils.git</url>
+        <connection>scm:git:https://github.com/hypfvieh/${project.artifactId}.git</connection>
+        <developerConnection>scm:git:https://github.com/hypfvieh/${project.artifactId}.git</developerConnection>
+        <url>https://github.com/hypfvieh/${project.artifactId}.git</url>
     </scm>
 
+    <licenses>
+        <license>
+            <name>MIT License</name>
+            <url>https://github.com/hypfvieh/${project.artifactId}/blob/master/LICENSE</url>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <id>hypfvieh</id>
+            <name>David M.</name>
+            <email>hypfvieh@googlemail.com</email>
+        </developer>
+    </developers>
 </project>
