@@ -20,10 +20,10 @@ public class ImageUtil {
     /**
      * Resize an image to given height/width keep the aspect ratio.
      *
-     * @param sourceImg The source of the image to resize.
-     * @param destImg The destination of the resized image.
+     * @param _imageFile The source of the image to resize.
      * @param _width The maximum width you want the new image to be, use 0 for source width.
      * @param _height The maximum height you want the new image to be, use 0 for source height.
+     *
      * @return byte array containing resized image
      *
      * @throws IOException on read/write error

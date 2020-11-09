@@ -31,8 +31,6 @@ public class SpinnerDialog<T extends Number> extends Dialog<T> {
      * Creates a new SpinnerDialog instance.
      *
      * @param _startValue The initial value
-     * @param _minValue The minimum value allowed
-     * @param _maxValue The maxmimum value allowed
      */
     public SpinnerDialog(String _title, String _headerText, String _contentLabelText, SpinnerValueFactory<T> _valueFactory, T _startValue) {
         final DialogPane dialogPane = getDialogPane();
@@ -60,12 +58,12 @@ public class SpinnerDialog<T extends Number> extends Dialog<T> {
         // setup IDs so we can click the buttons with TestFX
         dialogPane.lookupButton(ButtonType.OK).setId("btnOk");
         dialogPane.lookupButton(ButtonType.CANCEL).setId("btnCancel");
-        
+
         final double MIN_WIDTH = 150;
 
-        spinner = new Spinner<T>();
+        spinner = new Spinner<>();
         spinner.setId("spinner");
-        
+
         spinner.setMinWidth(MIN_WIDTH);
 
         if (_valueFactory != null) {

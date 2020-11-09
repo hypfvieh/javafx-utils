@@ -243,8 +243,7 @@ public class WindowPositionSaver {
 
     /**
      * Restore given stage status/size to values found with the given name.
-     * @param _windowPrefsSaveLoad
-     * @param _windowName name to use
+     * @param _controller controller/window to restore
      * @param _stage stage to restore
      * @param _root
      */

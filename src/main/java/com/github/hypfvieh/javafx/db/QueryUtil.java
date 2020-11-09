@@ -99,7 +99,6 @@ public class QueryUtil implements Closeable {
      * Creates a new session, executes the query and closes the session after query.
      * <br>
      * @param _toExecute consumer to execute
-     * @param _catchAllExceptions true to catch all exception, false to re-throw
      */
     public void executeInNewSession(Consumer<Session> _toExecute) {
         executeSession(null, _toExecute, false);
@@ -214,7 +213,6 @@ public class QueryUtil implements Closeable {
      * Creates a new session, executes the query and closes the session after query.
      * <br>
      * @param _toExecute consumer to execute
-     * @param _catchAllExceptions true to catch all exceptions, false to re-throw
      *
      * @return Result of whatever the function should return
      * @param <T> type of action result
