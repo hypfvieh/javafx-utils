@@ -35,7 +35,9 @@ public class FxConverter {
 
     /**
      * Creates a UnaryOperator usable as filter for e.g. Spinner.
-     * @return
+     * @param _allowNull true to allow <code>null</code> values.
+     *
+     * @return {@link UnaryOperator}
      */
     public static UnaryOperator<Change> createIntegerFilter(boolean _allowNull) {
         return c -> {
@@ -54,7 +56,8 @@ public class FxConverter {
     /**
      * A filter which only allows double patterns.
      * @param _allowNull allow null or empty values
-     * @return
+     *
+     * @return {@link UnaryOperator}
      */
     public static UnaryOperator<Change> createDoubleFilter(boolean _allowNull) {
         char decimalSeparator = DecimalFormatSymbols.getInstance().getDecimalSeparator();
@@ -76,7 +79,8 @@ public class FxConverter {
     /**
      * A filter which only allows currency patterns.
      * @param _allowNull allow null or empty values
-     * @return
+     *
+     * @return {@link UnaryOperator}
      */
     public static UnaryOperator<Change> createCurrencyFilter(boolean _allowNull) {
         return c -> {

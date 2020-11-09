@@ -56,29 +56,33 @@ public class ChoiceDialogExt<T> extends Dialog<T> {
      * dialog will show with the initial choice set to the first item in the list
      * of choices.
      *
-     * @param defaultChoice The item to display as the pre-selected choice in the dialog.
-     *        This item must be contained within the choices varargs array.
-     * @param choices All possible choices to present to the user.
+     * @param _title dialog title
+     * @param _headerText dialog header text
+     * @param _contentLabelText description text
+     * @param _defaultChoice default selected choice
+     * @param _choices possible choices
      */
-    public ChoiceDialogExt(String _title, String _headerText, String _contentLabelText, T defaultChoice,  @SuppressWarnings("unchecked") T... choices) {
-        this(_title, _headerText, _contentLabelText, defaultChoice,
-             choices == null ? Collections.emptyList() : Arrays.asList(choices));
+    public ChoiceDialogExt(String _title, String _headerText, String _contentLabelText, T _defaultChoice, @SuppressWarnings("unchecked") T... _choices) {
+        this(_title, _headerText, _contentLabelText, _defaultChoice,
+             _choices == null ? Collections.emptyList() : Arrays.asList(_choices));
     }
 
     /**
      * Creates a new ChoiceDialog instance with the first argument specifying the
-     * default choice that should be shown to the user, and the second argument
-     * specifying a collection of all available choices for the user. It is
-     * expected that the defaultChoice be one of the elements in the choices
-     * collection. If this is not true, then defaultChoice will be set to null and the
+     * default choice that should be shown to the user, and all following arguments
+     * considered a varargs array of all available choices for the user. It is
+     * expected that the defaultChoice be one of the elements in the choices varargs
+     * array. If this is not true, then defaultChoice will be set to null and the
      * dialog will show with the initial choice set to the first item in the list
      * of choices.
      *
-     * @param defaultChoice The item to display as the pre-selected choice in the dialog.
-     *        This item must be contained within the choices varargs array.
-     * @param choices All possible choices to present to the user.
+     * @param _title dialog title
+     * @param _headerText dialog header text
+     * @param _contentLabelText description text
+     * @param _defaultChoice default selected choice
+     * @param _choices possible choices
      */
-    public ChoiceDialogExt(String _title, String _headerText, String _contentLabelText, T defaultChoice, Collection<T> choices) {
+    public ChoiceDialogExt(String _title, String _headerText, String _contentLabelText, T _defaultChoice, Collection<T> _choices) {
         final DialogPane dialogPane = getDialogPane();
 
         // -- grid
@@ -101,21 +105,21 @@ public class ChoiceDialogExt<T> extends Dialog<T> {
 
         final double MIN_WIDTH = 150;
 
-        comboBox = new ComboBox<T>();
+        comboBox = new ComboBox<>();
         comboBox.setMinWidth(MIN_WIDTH);
-        if (choices != null) {
-            comboBox.getItems().addAll(choices);
+        if (_choices != null) {
+            comboBox.getItems().addAll(_choices);
         }
         comboBox.setMaxWidth(Double.MAX_VALUE);
         GridPane.setHgrow(comboBox, Priority.ALWAYS);
         GridPane.setFillWidth(comboBox, true);
 
-        this.defaultChoice = comboBox.getItems().contains(defaultChoice) ? defaultChoice : null;
+        this.defaultChoice = comboBox.getItems().contains(_defaultChoice) ? _defaultChoice : null;
 
-        if (defaultChoice == null) {
+        if (_defaultChoice == null) {
             comboBox.getSelectionModel().selectFirst();
         } else {
-            comboBox.getSelectionModel().select(defaultChoice);
+            comboBox.getSelectionModel().select(_defaultChoice);
         }
 
         updateGrid();
@@ -152,10 +156,10 @@ public class ChoiceDialogExt<T> extends Dialog<T> {
 
     /**
      * Sets the currently selected item in the dialog.
-     * @param item The item to select in the dialog.
+     * @param _item The item to select in the dialog.
      */
-    public final void setSelectedItem(T item) {
-        comboBox.getSelectionModel().select(item);
+    public final void setSelectedItem(T _item) {
+        comboBox.getSelectionModel().select(_item);
     }
 
     /**
@@ -180,8 +184,8 @@ public class ChoiceDialogExt<T> extends Dialog<T> {
         return comboBox;
     }
 
-    static Label createContentLabel(String text) {
-        Label label = new Label(text);
+    static Label createContentLabel(String _text) {
+        Label label = new Label(_text);
         label.setMaxWidth(Double.MAX_VALUE);
         label.setMaxHeight(Double.MAX_VALUE);
         label.getStyleClass().add("content");

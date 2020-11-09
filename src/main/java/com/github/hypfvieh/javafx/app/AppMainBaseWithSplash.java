@@ -60,6 +60,7 @@ public abstract class AppMainBaseWithSplash extends Application {
 
     /**
      * Initialize application base information.
+     * @return {@link SplashAppConfig}
      */
     protected abstract SplashAppConfig initialize();
 

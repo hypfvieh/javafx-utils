@@ -89,7 +89,7 @@ public class FxWindowUtils {
      * Set the default icon to use when opening a new window.
      * Use null to disable default icon.
      *
-     * @param _fileName
+     * @param _fileName icon file name
      */
     public static void setDefaultWindowIcon(String _fileName) {
         default_window_icon = _fileName;
@@ -103,6 +103,8 @@ public class FxWindowUtils {
      * @param _modal set window modality
      * @param _resizeable set window resizable
      * @param _title set window title
+     *
+     * @param <B> parent controller type
      */
     public static <B extends Initializable> void showWindow(B _parent, String _fXmlFile, boolean _wait, Modality _modal,
             boolean _resizeable, String _title) {

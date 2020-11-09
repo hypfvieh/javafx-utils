@@ -29,6 +29,9 @@ public abstract class BaseWindowSavingController extends BaseWindowController im
      * Method to create a listener which will set the {@link #changed} property of this
      * window if there are changes.
      *
+     * @param <S> list type
+     * @param <T> cell type
+     *
      * @return {@link EventHandler}
      */
     protected <S, T> EventHandler<CellEditEvent<S, T>> createHasChangedListener() {
@@ -54,7 +57,7 @@ public abstract class BaseWindowSavingController extends BaseWindowController im
      *
      * Use true to force the dialog to be shown.
      *
-     * @param _changed
+     * @param _changed set the change flag
      */
     public final void setChanged(boolean _changed) {
         changed = _changed;

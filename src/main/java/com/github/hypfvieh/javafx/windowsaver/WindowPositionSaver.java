@@ -203,7 +203,7 @@ public class WindowPositionSaver {
 
     /**
      * Remove all saved window preferences found under given class name.
-     * @param _windowClassName
+     * @param _windowClassName name of the window class to clear preferences for
      */
     public static void clearSavedWindowPreferences(String _windowClassName) {
         if (!enabled) {
@@ -245,7 +245,7 @@ public class WindowPositionSaver {
      * Restore given stage status/size to values found with the given name.
      * @param _controller controller/window to restore
      * @param _stage stage to restore
-     * @param _root
+     * @param _root parent
      */
     public static void restoreWindowPosition(Initializable _controller, Stage _stage, Parent _root) {
         if (!enabled) {

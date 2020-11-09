@@ -30,7 +30,11 @@ public class SpinnerDialog<T extends Number> extends Dialog<T> {
     /**
      * Creates a new SpinnerDialog instance.
      *
-     * @param _startValue The initial value
+     * @param _title dialog title
+     * @param _headerText dialog header text
+     * @param _contentLabelText description text
+     * @param _valueFactory value factory
+     * @param _startValue starting value
      */
     public SpinnerDialog(String _title, String _headerText, String _contentLabelText, SpinnerValueFactory<T> _valueFactory, T _startValue) {
         final DialogPane dialogPane = getDialogPane();
@@ -104,10 +108,10 @@ public class SpinnerDialog<T extends Number> extends Dialog<T> {
 
     /**
      * Sets the current value
-     * @param item value to set
+     * @param _item value to set
      */
-    public final void setValue(T item) {
-        spinner.getValueFactory().setValue(item);
+    public final void setValue(T _item) {
+        spinner.getValueFactory().setValue(_item);
     }
 
     /**
@@ -122,8 +126,8 @@ public class SpinnerDialog<T extends Number> extends Dialog<T> {
         return spinner;
     }
 
-    static Label createContentLabel(String text) {
-        Label label = new Label(text);
+    static Label createContentLabel(String _text) {
+        Label label = new Label(_text);
         label.setMaxWidth(Double.MAX_VALUE);
         label.setMaxHeight(Double.MAX_VALUE);
         label.getStyleClass().add("content");

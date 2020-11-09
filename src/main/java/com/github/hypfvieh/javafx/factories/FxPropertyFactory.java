@@ -104,6 +104,9 @@ public final class FxPropertyFactory {
      * Create a object binding.
      * @param _bean object to bind
      * @param _fieldName fieldname to bind
+     *
+     * @param <T> object type
+     *
      * @return {@link ObjectProperty}
      */
     @SuppressWarnings("unchecked")

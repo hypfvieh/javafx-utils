@@ -31,6 +31,15 @@ public class FxDialogUtils {
 
     /**
      * @see #showConfirmYesNo(AlertType, String, String, String, String, String, String)
+     *
+     * @param _msg dialog message
+     * @param _title dialog title
+     * @param _subTitle dialog header text
+     * @param _btnYesCaption yes button caption
+     * @param _btnNoCaption no button caption
+     * @param _btnCancel cancel button caption (use null to hide this button)
+     *
+     * @return {@link ButtonData} representing clicked button ({@link ButtonData#YES}, {@link ButtonData#NO}, {@link ButtonData#CANCEL_CLOSE})
      */
     public static ButtonData showConfirmYesNo(String _msg, String _title, String _subTitle, String _btnYesCaption,
             String _btnNoCaption, String _btnCancel) {
