@@ -1,14 +1,9 @@
 package com.github.hypfvieh.javafx.beans;
 
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-
-import com.github.hypfvieh.javafx.utils.StringHelper;
 
 /**
  * Defines a single date (from and until has the same date) or date range with a description.
@@ -17,27 +12,20 @@ import com.github.hypfvieh.javafx.utils.StringHelper;
  * @since v11.0.0 - 2020-09-11
  */
 public class DateRange implements Comparable<DateRange> {
-    private DateTimeFormatter dtFormat;
-
     private LocalDate from;
     private LocalDate until;
 
     private String description;
 
     public DateRange() {
-        this(null, null, null, null);
+        this(null, null, null);
     }
 
     public DateRange(LocalDate _from, LocalDate _until) {
-        this(_from, _until, null, null);
+        this(_from, _until, null);
     }
 
     public DateRange(LocalDate _from, LocalDate _until, String _description) {
-        this(_from, _until, _description, null);
-    }
-
-    public DateRange(LocalDate _from, LocalDate _until, String _description, DateTimeFormatter _dtFormat) {
-        dtFormat = _dtFormat == null ? DateTimeFormatter.ISO_DATE : _dtFormat;
         from = _from;
         until = _until;
         description = _description;
@@ -67,14 +55,6 @@ public class DateRange implements Comparable<DateRange> {
         description = _description;
     }
 
-    public DateTimeFormatter getDtFormat() {
-        return dtFormat;
-    }
-
-    public void setDtFormat(DateTimeFormatter _dtFormat) {
-        dtFormat = _dtFormat;
-    }
-
     @Override
     public DateRange clone() {
         DateRange dateRange = new DateRange();
@@ -91,12 +71,9 @@ public class DateRange implements Comparable<DateRange> {
      * @return list of dates
      */
     public List<LocalDate> getDates() {
-        long between = ChronoUnit.DAYS.between(from, until);
-
-        return IntStream.iterate(0, i -> i + 1)
-            .limit(between)
-            .mapToObj(i -> from.plusDays(i))
-            .collect(Collectors.toList());
+        // from is inclusive, until is exclusive, so we have to add one day to stick
+        // in the configured range and not to exclude the last day of the range
+        return from.datesUntil(until.plusDays(1)).collect(Collectors.toList());
     }
 
     @Override
@@ -120,24 +97,26 @@ public class DateRange implements Comparable<DateRange> {
                 && Objects.equals(until, other.until);
     }
 
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
+//    @Override
+//    public String toString() {
+//        StringBuilder sb = new StringBuilder();
+//
+//        if (from != null && from.equals(until)) {
+//            sb.append(dtFormat.format(from));
+//        } else {
+//            sb.append(dtFormat.format(from));
+//            sb.append(" - ");
+//            sb.append(dtFormat.format(until));
+//        }
+//
+//        if (!StringHelper.isBlank(description)) {
+//            sb.append(" (").append(description).append(")");
+//        }
+//
+//        return sb.toString();
+//    }
 
-        if (from != null && from.equals(until)) {
-            sb.append(dtFormat.format(from));
-        } else {
-            sb.append(dtFormat.format(from));
-            sb.append(" - ");
-            sb.append(dtFormat.format(until));
-        }
 
-        if (!StringHelper.isBlank(description)) {
-            sb.append(" (").append(description).append(")");
-        }
-
-        return sb.toString();
-    }
 
     @Override
     public int compareTo(DateRange _o) {
@@ -160,6 +139,11 @@ public class DateRange implements Comparable<DateRange> {
         }
 
         return 0;
+    }
+
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + " [from=" + from + ", until=" + until + ", description=" + description + "]";
     }
 
 }
