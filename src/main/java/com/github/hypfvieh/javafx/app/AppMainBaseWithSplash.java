@@ -2,6 +2,7 @@ package com.github.hypfvieh.javafx.app;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.Objects;
 import java.util.function.Consumer;
 
@@ -175,6 +176,8 @@ public abstract class AppMainBaseWithSplash extends Application {
     public void start(Stage _stage) throws IOException {
         Task<Void> task = getStartupTaskInternal(_stage);
 
+        Thread.setDefaultUncaughtExceptionHandler(getUncaughtExceptionHandler());
+
         if (task.getOnFailed() == null) {
             task.setOnFailed(evt -> {
                 logger.error("Error while running application:", task.getException());
@@ -201,6 +204,26 @@ public abstract class AppMainBaseWithSplash extends Application {
         showSplash(_stage, task);
         new Thread(task, "Application Startup Task").start();
 
+    }
+
+    /**
+     * Returns the exception handler which will be used for unchecked exceptions in JavaFX Application Thread.
+     * Should check if the current thread is FX Application thread when trying to show any dialog.
+     *
+     * @return {@link UncaughtExceptionHandler}
+     */
+    protected UncaughtExceptionHandler getUncaughtExceptionHandler() {
+        return (_thread, _ex) -> {
+            logger.error("Uncaught exception in thread '{}'", _thread, _ex);
+            if (Platform.isFxApplicationThread()) {
+                FxDialogUtils.showExceptionDialog(AlertType.ERROR,
+                        translator.t("error_fxmain_thread_title", "Error"),
+                        translator.t("error_fxmain_thread_subtitle", "Fatal Error"),
+                        translator.t("error_fxmain_thread_msg", "Unexpected error: %s", _ex.toString()),
+                        translator.t("error_fxmain_thread_detailbtn", "Details"),
+                        _ex);
+            }
+        };
     }
 
     /**
