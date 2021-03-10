@@ -3,6 +3,7 @@ package com.github.hypfvieh.javafx.dialogs;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.function.Function;
 
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -15,6 +16,7 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.DialogPane;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -38,6 +40,7 @@ public class ChoiceDialogExt<T> extends Dialog<T> {
     private final Label label;
     private final ComboBox<T> comboBox;
     private final T defaultChoice;
+    private Function<T, String> valConverter;
 
 
 
@@ -85,6 +88,8 @@ public class ChoiceDialogExt<T> extends Dialog<T> {
     public ChoiceDialogExt(String _title, String _headerText, String _contentLabelText, T _defaultChoice, Collection<T> _choices) {
         final DialogPane dialogPane = getDialogPane();
 
+        setValueConverter(null);
+
         // -- grid
         this.grid = new GridPane();
         this.grid.setHgap(10);
@@ -106,6 +111,31 @@ public class ChoiceDialogExt<T> extends Dialog<T> {
         final double MIN_WIDTH = 150;
 
         comboBox = new ComboBox<>();
+        comboBox.setCellFactory(cb -> new ListCell<>() {
+
+            @Override
+            protected void updateItem(T _item, boolean _empty) {
+                super.updateItem(_item, _empty);
+                if (!_empty) {
+                    setText(valConverter.apply(_item));
+                } else {
+                    setText(null);
+                }
+            }
+
+        });
+        comboBox.setButtonCell(new ListCell<>() {
+            @Override
+            protected void updateItem(T _item, boolean _empty) {
+                super.updateItem(_item, _empty);
+                if (!_empty) {
+                    setText(valConverter.apply(_item));
+                } else {
+                    setText(null);
+                }
+            }
+        });
+
         comboBox.setMinWidth(MIN_WIDTH);
         if (_choices != null) {
             comboBox.getItems().addAll(_choices);
@@ -130,6 +160,13 @@ public class ChoiceDialogExt<T> extends Dialog<T> {
         });
     }
 
+    public void setValueConverter(Function<T, String> _converter) {
+        if (_converter == null) {
+            valConverter = i -> i != null ? i.toString() : null;
+        } else {
+            valConverter = _converter;
+        }
+    }
 
 
     /**************************************************************************
