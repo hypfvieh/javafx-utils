@@ -2,6 +2,8 @@ package com.github.hypfvieh.javafx.app;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -29,9 +31,6 @@ import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.github.hypfvieh.javafx.fx.FxDialogUtils;
 import com.github.hypfvieh.javafx.fx.FxWindowUtils;
 import com.github.hypfvieh.javafx.fx.FxWindowUtils.WindowOptions;
@@ -49,7 +48,7 @@ import com.github.hypfvieh.javafx.utils.Translator;
  */
 public abstract class AppMainBaseWithSplash extends Application {
 
-    public final Logger      logger               = LoggerFactory.getLogger(AppMainBaseWithSplash.class);
+    public final Logger      logger               = System.getLogger(AppMainBaseWithSplash.class.getName());
     private final Translator translator           = new Translator("AppMainBaseWithSplash");
 
     private SplashAppConfig config;
@@ -117,7 +116,7 @@ public abstract class AppMainBaseWithSplash extends Application {
      */
     public Consumer<AppAlreadyRunningException> handleAppAlreadyRunning() {
         return _ex -> {
-            logger.error("Could not start application, software already running", _ex);
+            logger.log(Level.ERROR, "Could not start application, software already running", _ex);
 
             Platform.runLater(() -> {
                 FxDialogUtils.showDialog(AlertType.ERROR,
@@ -139,7 +138,7 @@ public abstract class AppMainBaseWithSplash extends Application {
      */
     public Consumer<Exception> handleOtherStartupExceptions() {
         return _ex -> {
-            logger.error("Exception while starting application:", _ex);
+            logger.log(Level.ERROR, "Exception while starting application:", _ex);
 
             Platform.setImplicitExit(true);
 
@@ -180,7 +179,7 @@ public abstract class AppMainBaseWithSplash extends Application {
 
         if (task.getOnFailed() == null) {
             task.setOnFailed(evt -> {
-                logger.error("Error while running application:", task.getException());
+                logger.log(Level.ERROR, "Error while running application:", task.getException());
 
                 String msg = translator.t("error_starting_app",
                         "Error while starting application. Please contact the support.");
@@ -214,7 +213,7 @@ public abstract class AppMainBaseWithSplash extends Application {
      */
     protected UncaughtExceptionHandler getUncaughtExceptionHandler() {
         return (_thread, _ex) -> {
-            logger.error("Uncaught exception in thread '{}'", _thread, _ex);
+            logger.log(Level.ERROR, "Uncaught exception in thread '{}'", _thread, _ex);
             if (Platform.isFxApplicationThread()) {
                 FxDialogUtils.showExceptionDialog(AlertType.ERROR,
                         translator.t("error_fxmain_thread_title", "Error"),
@@ -247,7 +246,7 @@ public abstract class AppMainBaseWithSplash extends Application {
                         shutdownTaskAction.run();
                     }
                 } catch (Exception _ex) {
-                    LoggerFactory.getLogger(getClass()).error("Error while closing window", _ex);
+                    System.getLogger(getClass().getName()).log(Level.ERROR, "Error while closing window", _ex);
                 }
                 Platform.setImplicitExit(true);
 
@@ -259,7 +258,7 @@ public abstract class AppMainBaseWithSplash extends Application {
                         showAction.run();
                     }
                 } catch (Exception _ex) {
-                    LoggerFactory.getLogger(getClass()).error("Error while showing window", _ex);
+                    System.getLogger(getClass().getName()).log(Level.ERROR, "Error while showing window", _ex);
                 }
             });
 
@@ -353,7 +352,7 @@ public abstract class AppMainBaseWithSplash extends Application {
                     _initStage.setY(bounds.getMinY() + bounds.getHeight() / 2 - image.getHeight() / 2);
                 }
             } catch (IOException _ex) {
-                logger.error("Could not load splash screen image {} from classpath", config.getSplashImage());
+                logger.log(Level.ERROR, "Could not load splash screen image {} from classpath", config.getSplashImage());
             }
         }
 

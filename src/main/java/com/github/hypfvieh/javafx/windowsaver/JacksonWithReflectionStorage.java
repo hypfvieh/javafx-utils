@@ -2,15 +2,14 @@ package com.github.hypfvieh.javafx.windowsaver;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * {@link IWindowDataStorage} implementation which uses jackson by reflection to store window information.
@@ -20,7 +19,7 @@ import org.slf4j.LoggerFactory;
  */
 public class JacksonWithReflectionStorage implements IWindowDataStorage {
 
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+    private final Logger logger = System.getLogger(getClass().getName());
 
     @Override
     public Map<String, WindowPosInfo> read(File _file) throws IOException {
@@ -73,9 +72,9 @@ public class JacksonWithReflectionStorage implements IWindowDataStorage {
             if (_ex.getCause() instanceof IOException) {
                 throw (IOException) _ex.getCause();
             }
-            logger.error("Error invoking jackson 'readValue' method", _ex);
+            logger.log(Level.ERROR, "Error invoking jackson 'readValue' method", _ex);
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | IllegalArgumentException | NoSuchMethodException | SecurityException _ex) {
-            logger.error("Error using reflection to call jackson's 'writeValue' method", _ex);
+            logger.log(Level.ERROR, "Error using reflection to call jackson's 'writeValue' method", _ex);
         }
 
         return null;
@@ -106,9 +105,9 @@ public class JacksonWithReflectionStorage implements IWindowDataStorage {
             if (_ex.getCause() instanceof IOException) {
                 throw (IOException) _ex.getCause();
             }
-            logger.error("Error invoking jackson 'writeValue' method", _ex);
+            logger.log(Level.ERROR, "Error invoking jackson 'writeValue' method", _ex);
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | IllegalArgumentException | NoSuchMethodException | SecurityException _ex) {
-            logger.error("Error using reflection to call jackson's 'writeValue' method", _ex);
+            logger.log(Level.ERROR, "Error using reflection to call jackson's 'writeValue' method", _ex);
         }
     }
 

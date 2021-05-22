@@ -1,5 +1,7 @@
 package com.github.hypfvieh.javafx.utils;
 
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -7,8 +9,6 @@ import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Helper for working with resource bundle for translations.
@@ -18,14 +18,14 @@ import org.slf4j.LoggerFactory;
  */
 public class Translator {
 
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+    private final Logger logger = System.getLogger(getClass().getName());
     private ResourceBundle rb;
 
     public Translator(String _bundleName, Locale _locale) {
         try {
             rb = ResourceBundle.getBundle(_bundleName, _locale == null ? Locale.getDefault() : _locale);
         } catch (java.util.MissingResourceException _ex) {
-            logger.warn("Requested resource bundle {} not found", _bundleName);
+            logger.log(Level.WARNING, "Requested resource bundle {} not found", _bundleName);
         }
     }
 
@@ -75,7 +75,7 @@ public class Translator {
         if (str.contains("%s")) {
             int countSubString = StringHelper.countSubString(str, "%s");
             if (countSubString != _placeholder.length) {
-                logger.debug("Placeholder count differs between found and provided placeholders in value of {}, placeholders provided: {}", _key, _placeholder.length);
+                logger.log(Level.DEBUG, "Placeholder count differs between found and provided placeholders in value of {}, placeholders provided: {}", _key, _placeholder.length);
             }
             List<Object> placeholders = new ArrayList<>(Arrays.asList(_placeholder));
             if (countSubString > _placeholder.length) {

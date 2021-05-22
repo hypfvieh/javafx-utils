@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration>
+    
+    <Appenders>
+        <Console name="app_stdout">
+            <PatternLayout pattern="%d{DEFAULT} %-5level [%thread] %logger{3} - %msg%n"/>
+        </Console>        
+    </Appenders>
+    
+    <Loggers>
+        <Root level="DEBUG">
+            <AppenderRef ref="app_stdout" />
+        </Root>
+    </Loggers>
+    
+</Configuration>
