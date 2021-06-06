@@ -35,6 +35,7 @@ import com.github.hypfvieh.javafx.windows.interfaces.IKeyboardShortcut;
 import com.github.hypfvieh.javafx.windows.interfaces.IObjectConsumer;
 import com.github.hypfvieh.javafx.windows.interfaces.IResultProvider;
 import com.github.hypfvieh.javafx.windows.interfaces.ISaveOnClose;
+import com.github.hypfvieh.javafx.windows.interfaces.IStageControllerAware;
 import com.github.hypfvieh.javafx.windowsaver.WindowPositionSaver;
 
 /**
@@ -383,8 +384,8 @@ public class FxWindowUtils {
         Stage rootStage = null;
         Class<?> rootClass = FxWindowUtils.class;
 
-        if (_parentWindow != null && _parentWindow instanceof BaseWindowController) {
-            rootStage = ((BaseWindowController) _parentWindow).getControllerStage();
+        if (_parentWindow != null && _parentWindow instanceof IStageControllerAware) {
+            rootStage = ((IStageControllerAware) _parentWindow).getControllerStage();
             rootClass = rootStage != null ? rootStage.getClass() : FxWindowUtils.class;
         }
 

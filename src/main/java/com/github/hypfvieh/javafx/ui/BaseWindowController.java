@@ -13,6 +13,7 @@ import javafx.stage.Stage;
 import com.github.hypfvieh.javafx.fx.FxWindowUtils;
 import com.github.hypfvieh.javafx.windows.interfaces.IKeyboardShortcut;
 import com.github.hypfvieh.javafx.windows.interfaces.ISaveWindowPreferences;
+import com.github.hypfvieh.javafx.windows.interfaces.IStageControllerAware;
 
 /**
  * Base class for all FXML controller classes.
@@ -20,7 +21,7 @@ import com.github.hypfvieh.javafx.windows.interfaces.ISaveWindowPreferences;
  * @author hypfvieh
  * @since v11.0.0 - 2020-09-11
  */
-public abstract class BaseWindowController implements ISaveWindowPreferences, IKeyboardShortcut, Initializable {
+public abstract class BaseWindowController implements ISaveWindowPreferences, IKeyboardShortcut, Initializable, IStageControllerAware {
 
     private boolean closedByWindowManager = true;
 
@@ -55,10 +56,12 @@ public abstract class BaseWindowController implements ISaveWindowPreferences, IK
         return keys;
     }
 
+    @Override
     public final Stage getControllerStage() {
         return controllerStage;
     }
 
+    @Override
     public final void setControllerStage(Stage _controllerStage) {
         controllerStage = _controllerStage;
     }
