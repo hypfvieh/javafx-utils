@@ -1,7 +1,5 @@
 package com.github.hypfvieh.javafx.windowsaver;
 
-import java.awt.Dimension;
-import java.awt.Toolkit;
 import java.io.File;
 import java.io.IOException;
 import java.lang.System.Logger;
@@ -13,7 +11,9 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 import javafx.fxml.Initializable;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Parent;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 
 import com.github.hypfvieh.javafx.windows.interfaces.ISaveWindowPreferences;
@@ -35,8 +35,13 @@ import com.github.hypfvieh.javafx.windows.interfaces.ISaveWindowPreferences.Wind
  */
 public class WindowPositionSaver {
 
+
     private static final Logger LOGGER = System.getLogger(WindowPositionSaver.class.getName());
+
     private static IWindowDataStorage storageProvider = new JacksonWithReflectionStorage();
+
+    private static File storageFolder = new File(System.getProperty("user.home"), ".javafx");
+    private static String storageFile = "windowPrefs";
 
     private static boolean enabled = false;
 
@@ -68,6 +73,35 @@ public class WindowPositionSaver {
      */
     public static boolean isEnabled() {
         return enabled;
+    }
+
+    /**
+     * Folder where to store window preferences.
+     * Defaults to "user.home/.javafx".
+     *
+     * @param _folder target folder, null is ignored
+     */
+    public static void setStorageFolder(File _folder) {
+        if (_folder == null) {
+            return;
+        }
+        storageFolder = _folder;
+    }
+
+    /**
+     * Name of the file to store window preferences in.
+     * File extension will be appended by the chosen storage backend.
+     *
+     * Defaults to "windowPrefs".
+     *
+     * @param _folder target folder, null is ignored
+     */
+    public static void setStorageFile(String _storeFile) {
+        if (_storeFile == null || _storeFile.isBlank()) {
+            return;
+        }
+
+        storageFile = _storeFile;
     }
 
     /**
@@ -122,14 +156,13 @@ public class WindowPositionSaver {
      * @return File
      */
     private static File getDataStoreFile() {
-        String userHome = System.getProperty("user.home");
-
-        File targetDir = new File(userHome, ".sgbm-scorecard");
-        if (!targetDir.exists()) {
-            targetDir.mkdirs();
+        if (!storageFolder.exists()) {
+            storageFolder.mkdirs();
         }
 
-        File prefFile = new File(targetDir, "windowPrefs.json");
+        String fileName = storageFile + "." + storageProvider.getFileExtension();
+
+        File prefFile = new File(storageFolder, fileName);
         return prefFile;
     }
 
@@ -166,8 +199,6 @@ public class WindowPositionSaver {
             if (windowPrefsSaveLoad == WindowData.SIZE || windowPrefsSaveLoad == WindowData.BOTH) {
                 posInfo.setHeight(_stage.getHeight());
                 posInfo.setWidth(_stage.getWidth());
-                posInfo.setMaxHeight(_stage.getMaxHeight());
-                posInfo.setMaxWidth(_stage.getMaxWidth());
                 posInfo.setMaximized(_stage.isMaximized());
 
                 if (_stage.getScene() != null && _stage.getScene().getRoot() != null) {
@@ -254,6 +285,10 @@ public class WindowPositionSaver {
         Objects.requireNonNull(_controller, "WindowController cannot be null");
         Objects.requireNonNull(_stage, "Stage cannot be null");
 
+        // force layout before applying window saver position/size because stage is uninitialized before
+        _stage.getScene().getRoot().layout();
+        _stage.sizeToScene();
+
         WindowData windowPrefsSaveLoad = _controller instanceof ISaveWindowPreferences ? ((ISaveWindowPreferences) _controller).saveWindowPreferences() : WindowData.NONE;
         windowPrefsSaveLoad = windowPrefsSaveLoad == null ? WindowData.NONE : windowPrefsSaveLoad;
 
@@ -276,14 +311,25 @@ public class WindowPositionSaver {
             return;
         }
 
+        double[] dimensions = computeAllScreenBounds();
 
-        // window is bigger than the screen, do nothing
-        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        if (screenSize != null
-        		&& posInfo.getWidth() > screenSize.getWidth()
-        		|| posInfo.getX() > screenSize.getWidth() -10
-        		|| posInfo.getHeight() > screenSize.getHeight()
-        		|| posInfo.getY() > screenSize.getHeight() -10) {
+        // X position is off screen
+        if (posInfo.getX() > dimensions[2] -10 || posInfo.getX() < dimensions[0]) {
+            return;
+        }
+
+        // Y position is off screen
+        if (posInfo.getY() > dimensions[3] || posInfo.getY() < dimensions[1]) {
+            return;
+        }
+
+        // width is smaller/bigger than screen resolution
+        if (posInfo.getWidth() < dimensions[0] || posInfo.getWidth() > dimensions[2]) {
+            return;
+        }
+
+        // height is smaller/bigger than screen resolution
+        if (posInfo.getHeight() < dimensions[1] || posInfo.getHeight() > dimensions[3]) {
             return;
         }
 
@@ -297,6 +343,35 @@ public class WindowPositionSaver {
 
         _stage.setX(posInfo.getX());
         _stage.setY(posInfo.getY());
+    }
+
+    /**
+     * Calculates the maximum screen size for multi monitor screens.
+     *
+     * @return double array, 0: minX, 1: minY, 2: maxX, 3: maxY
+     */
+    private static double[] computeAllScreenBounds() {
+        double minX = Double.POSITIVE_INFINITY;
+        double minY = Double.POSITIVE_INFINITY;
+        double maxX = Double.NEGATIVE_INFINITY;
+        double maxY = Double.NEGATIVE_INFINITY;
+
+        for (Screen screen : Screen.getScreens()) {
+            Rectangle2D screenBounds = screen.getBounds();
+            if (screenBounds.getMinX() < minX) {
+                minX = screenBounds.getMinX();
+            }
+            if (screenBounds.getMinY() < minY) {
+                minY = screenBounds.getMinY() ;
+            }
+            if (screenBounds.getMaxX() > maxX) {
+                maxX = screenBounds.getMaxX();
+            }
+            if (screenBounds.getMaxY() > maxY) {
+                maxY = screenBounds.getMaxY() ;
+            }
+        }
+        return new double[] {minX, minY, maxX, maxY};
     }
 
     /**
@@ -314,19 +389,22 @@ public class WindowPositionSaver {
             double oldDefaultMin = dwp.getMinGetter().apply(_posInfo);
             double oldDefaultMax = dwp.getMaxGetter().apply(_posInfo);
 
-            Double max = dwp.getParentMaxGetter().apply(_root);
-            if (!max.equals(oldDefaultMax)) {
-                LOGGER.log(Level.DEBUG, "{} default window max{} changed from {} to {}", _windowClass.getClass().getSimpleName(), dwp.getLogStr(), oldDefaultMax == -1 ? "NOT SET" : oldDefaultMax, max);
-                dwp.getMaxSetter().accept(_posInfo, max);
-                hasChanged = true;
-            }
-
-            Double min = dwp.getParentMinGetter().apply(_root);
-            if (!min.equals(oldDefaultMin)) {
+            Double min = dwp.getStageMinGetter().apply(_stage);
+            // minimum value was changed and needs to be bigger than the old value
+            if (min > oldDefaultMin) {
                 LOGGER.log(Level.DEBUG, "{} default window min{} changed from {} to {}", _windowClass.getClass().getSimpleName(), dwp.getLogStr(), oldDefaultMin == -1 ? "NOT SET" : oldDefaultMin, min);
                 dwp.getMinSetter().accept(_posInfo, min);
                 hasChanged = true;
             }
+
+            Double max = dwp.getStageMaxGetter().apply(_stage);
+            // max value was changed and has to be smaller than the old value
+            if (max < oldDefaultMax) {
+                LOGGER.log(Level.DEBUG, "{} default window min{} changed from {} to {}", _windowClass.getClass().getSimpleName(), dwp.getLogStr(), oldDefaultMax == -1 ? "NOT SET" : oldDefaultMax, max);
+                dwp.getMaxSetter().accept(_posInfo, min);
+                hasChanged = true;
+            }
+
         }
 
         return hasChanged;
@@ -340,70 +418,83 @@ public class WindowPositionSaver {
      */
     enum DefaultWindowPrefs {
         HEIGHT("Height",
-                wi -> wi.getMinHeight(),
-                wi -> wi.getMaxHeight(),
-                s -> s.minHeight(-1),
-                s -> s.maxHeight(-1),
-                (wi, d) -> wi.setMaxHeight(d),
-                (wi, d) -> wi.setMinHeight(d)
+                wi -> wi.getMinHeight(), // min window height getter
+                wi -> wi.getMaxHeight(), // max window height getter
+                (wi, d) -> wi.setMinHeight(d), // min window height setter
+                (wi, d) -> wi.setMaxHeight(d), // max window height setter
+                st -> st.getMinHeight(), // get min height from stage
+                st -> st.getMaxHeight() // get max height from stage
         ),
         WIDTH("Width",
-                wi -> wi.getMinWidth(),
-                wi -> wi.getMaxWidth(),
-                s -> s.minWidth(-1),
-                s -> s.maxWidth(-1),
-                (wi, d) -> wi.setMaxWidth(d),
-                (wi, d) -> wi.setMinWidth(d)
+                wi -> wi.getMinWidth(), // min window width getter
+                wi -> wi.getMaxWidth(), // max window width getter
+                (wi, d) -> wi.setMinWidth(d), // min window width Setter
+                (wi, d) -> wi.setMaxWidth(d), // max window width Setter
+                st -> st.getMinWidth(), // get min width from stage
+                st -> st.getMaxWidth() // get max width from stage
         );
 
         private final String logStr;
 
-        private final Function<WindowPosInfo, Double> maxGetter;
+        /** stored minimum width/height getter */
         private final Function<WindowPosInfo, Double> minGetter;
-        private final BiConsumer<WindowPosInfo, Double> maxSetter;
+        /** stored minimum width/height setter */
         private final BiConsumer<WindowPosInfo, Double> minSetter;
-        private final Function<Parent, Double> parentMinGetter;
-        private final Function<Parent, Double> parentMaxGetter;
+        /** stored maximum width/height setter */
+        private final BiConsumer<WindowPosInfo, Double> maxSetter;
+        /** stored maximum width/height getter */
+        private final Function<WindowPosInfo, Double> maxGetter;
+
+        /** stage minimum width/height getter */
+        private final Function<Stage, Double> stageMinGetter;
+        /** stage maximum width/height getter */
+        private final Function<Stage, Double> stageMaxGetter;
+
 
         DefaultWindowPrefs(String _logStr,
-                Function<WindowPosInfo, Double> _minGetter, Function<WindowPosInfo, Double> _maxGetter,
-                Function<Parent, Double> _parentMinGetter, Function<Parent, Double> _parentMaxGetter,
-                BiConsumer<WindowPosInfo, Double> _maxSetter, BiConsumer<WindowPosInfo, Double> _minSetter) {
+                Function<WindowPosInfo, Double> _minGetter,
+                Function<WindowPosInfo, Double> _maxGetter,
+                BiConsumer<WindowPosInfo, Double> _minSetter,
+                BiConsumer<WindowPosInfo, Double> _maxSetter,
+                Function<Stage, Double> _stageMinGetter,
+                Function<Stage, Double> _stageMaxGetter
+                ) {
+
             minGetter = _minGetter;
-            maxGetter = _maxGetter;
-            parentMinGetter = _parentMinGetter;
-            parentMaxGetter = _parentMaxGetter;
             logStr = _logStr;
-            maxSetter = _maxSetter;
+            maxGetter = _maxGetter;
             minSetter = _minSetter;
+            maxSetter = _maxSetter;
+            stageMinGetter = _stageMinGetter;
+            stageMaxGetter = _stageMaxGetter;
         }
 
         public String getLogStr() {
             return logStr;
         }
 
-        public Function<Parent, Double> getParentMinGetter() {
-            return parentMinGetter;
-        }
-
-        public Function<Parent, Double> getParentMaxGetter() {
-            return parentMaxGetter;
-        }
-
-        public Function<WindowPosInfo, Double> getMaxGetter() {
-            return maxGetter;
-        }
-
         public Function<WindowPosInfo, Double> getMinGetter() {
             return minGetter;
+        }
+
+        public BiConsumer<WindowPosInfo, Double> getMinSetter() {
+            return minSetter;
+        }
+
+        public Function<Stage, Double> getStageMinGetter() {
+            return stageMinGetter;
+        }
+
+        public Function<Stage, Double> getStageMaxGetter() {
+            return stageMaxGetter;
         }
 
         public BiConsumer<WindowPosInfo, Double> getMaxSetter() {
             return maxSetter;
         }
 
-        public BiConsumer<WindowPosInfo, Double> getMinSetter() {
-            return minSetter;
+        public Function<WindowPosInfo, Double> getMaxGetter() {
+            return maxGetter;
         }
 
     }

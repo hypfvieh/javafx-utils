@@ -31,6 +31,11 @@ public class JacksonWithReflectionStorage implements IWindowDataStorage {
         writeWithJackson(_file, _data);
     }
 
+    @Override
+    public String getFileExtension() {
+        return "json";
+    }
+
     /**
      * Uses reflection to read values from file using the jackson library.
      *

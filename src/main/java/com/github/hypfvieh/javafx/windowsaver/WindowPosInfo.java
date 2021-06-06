@@ -13,12 +13,15 @@ public class WindowPosInfo {
     private double  minWidth;
     private double  maxWidth;
     private double  prefWidth;
+
     private double  height;
     private double  minHeight;
     private double  maxHeight;
     private double  prefHeight;
+
     private double  x;
     private double  y;
+
     private boolean maximized;
     private String  title;
 
@@ -54,14 +57,6 @@ public class WindowPosInfo {
         minWidth = _minWidth;
     }
 
-    public double getMaxWidth() {
-        return maxWidth;
-    }
-
-    public void setMaxWidth(double _maxWidth) {
-        maxWidth = _maxWidth;
-    }
-
     public double getHeight() {
         return height;
     }
@@ -76,14 +71,6 @@ public class WindowPosInfo {
 
     public void setMinHeight(double _minHeight) {
         minHeight = _minHeight;
-    }
-
-    public double getMaxHeight() {
-        return maxHeight;
-    }
-
-    public void setMaxHeight(double _maxHeight) {
-        maxHeight = _maxHeight;
     }
 
     public double getX() {
@@ -118,9 +105,25 @@ public class WindowPosInfo {
         title = _title;
     }
 
+    public double getMaxWidth() {
+        return maxWidth;
+    }
+
+    public void setMaxWidth(double _maxWidth) {
+        maxWidth = _maxWidth;
+    }
+
+    public double getMaxHeight() {
+        return maxHeight;
+    }
+
+    public void setMaxHeight(double _maxHeight) {
+        maxHeight = _maxHeight;
+    }
+
     @Override
     public int hashCode() {
-        return Objects.hash(height, maxHeight, maxWidth, maximized, minHeight, minWidth, prefHeight, prefWidth, title,
+        return Objects.hash(height, maximized, minHeight, minWidth, prefHeight, prefWidth, title,
                 width, x, y);
     }
 
@@ -137,8 +140,6 @@ public class WindowPosInfo {
         }
         WindowPosInfo other = (WindowPosInfo) obj;
         return Double.doubleToLongBits(height) == Double.doubleToLongBits(other.height)
-                && Double.doubleToLongBits(maxHeight) == Double.doubleToLongBits(other.maxHeight)
-                && Double.doubleToLongBits(maxWidth) == Double.doubleToLongBits(other.maxWidth)
                 && maximized == other.maximized
                 && Double.doubleToLongBits(minHeight) == Double.doubleToLongBits(other.minHeight)
                 && Double.doubleToLongBits(minWidth) == Double.doubleToLongBits(other.minWidth)

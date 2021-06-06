@@ -90,21 +90,27 @@ public abstract class AppMainBaseWithSplash extends Application {
 
     /**
      * Runnable which will be executed when application is closed.
+     * Override this method if you need to execute something when window should be closed.
      *
      * @param _stage the primary stage
      *
      * @return runnable or null to do nothing
      */
-    public abstract Runnable onMainWindowCloseAction(Stage _stage);
+    public Runnable onMainWindowCloseAction(Stage _stage) {
+        return null;
+    }
 
     /**
      * Runnable which will be executed when application window is shown.
+     * Override this method if you need to execute something after the main window's OnShown method is called.
      *
      * @param _stage the primary stage
      *
      * @return runnable or null to do nothing
      */
-    public abstract Runnable onMainWindowShownAction(Stage _stage);
+    public Runnable onMainWindowShownAction(Stage _stage) {
+        return null;
+    }
 
     /**
      * Called when application is started with {@link AppLock} support and there was already an instance running.

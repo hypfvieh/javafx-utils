@@ -328,9 +328,12 @@ public class FxWindowUtils {
                 if (_sizeSettings.getRunOnShow() != null) {
                     _sizeSettings.getRunOnShow().run();
                 }
+                if (WindowPositionSaver.isEnabled()) {
+                    // restore window settings after stage has been initialized
+                    WindowPositionSaver.restoreWindowPosition(((Initializable) controller), stage, root);
+                }
             });
 
-            WindowPositionSaver.restoreWindowPosition(((Initializable) controller), stage, root);
 
             if (_wait) {
                 stage.showAndWait();
