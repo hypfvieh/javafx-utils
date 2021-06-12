@@ -178,8 +178,8 @@ public class Translator {
             try {
                 addBundles.add(ResourceBundle.getBundle(bundleName, locale));
             } catch (java.util.MissingResourceException _ex) {
-                clz = clz.getSuperclass();
             }
+            clz = clz.getSuperclass();
         }
 
         if (addBundles.isEmpty()) {
