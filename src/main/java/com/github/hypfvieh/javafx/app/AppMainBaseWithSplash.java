@@ -118,14 +118,16 @@ public abstract class AppMainBaseWithSplash extends Application {
      * Default will show a error message to the user and exit the application. <br>
      * Overwrite this method to do something else.
      *
+     * @param _stage initial stage
+     *
      * @return Consumer, or null to do nothing
      */
-    public Consumer<AppAlreadyRunningException> handleAppAlreadyRunning() {
+    public Consumer<AppAlreadyRunningException> handleAppAlreadyRunning(Stage _stage) {
         return _ex -> {
             logger.log(Level.ERROR, "Could not start application, software already running", _ex);
 
             Platform.runLater(() -> {
-                FxDialogUtils.showDialog(AlertType.ERROR,
+                FxDialogUtils.showDialog(_stage, AlertType.ERROR,
                         translator.t("app_running", "Application already running"),
                         translator.t("app_already_running", "Application already running"),
                         translator.t("app_running_msg",
@@ -140,16 +142,17 @@ public abstract class AppMainBaseWithSplash extends Application {
      * Default will show a error message to the user and exit the application with exit code = 1. <br>
      * Overwrite this method to do something else.
      *
+     * @param _stage initial stage
      * @return Consumer, or null to do nothing
      */
-    public Consumer<Exception> handleOtherStartupExceptions() {
+    public Consumer<Exception> handleOtherStartupExceptions(Stage _stage) {
         return _ex -> {
             logger.log(Level.ERROR, "Exception while starting application:", _ex);
 
             Platform.setImplicitExit(true);
 
             Platform.runLater(() -> {
-                FxDialogUtils.showDialog(AlertType.ERROR,
+                FxDialogUtils.showDialog(_stage, AlertType.ERROR,
                         translator.t("app_could_not_be_started", "Application could not be started"),
                         translator.t("app_could_not_be_started", "Application could not be started"),
                         translator.t("app_could_not_be_started_msg",
@@ -181,7 +184,7 @@ public abstract class AppMainBaseWithSplash extends Application {
     public void start(Stage _stage) throws IOException {
         Task<Void> task = getStartupTaskInternal(_stage);
 
-        Thread.setDefaultUncaughtExceptionHandler(getUncaughtExceptionHandler());
+        Thread.setDefaultUncaughtExceptionHandler(getUncaughtExceptionHandler(_stage));
 
         if (task.getOnFailed() == null) {
             task.setOnFailed(evt -> {
@@ -215,13 +218,14 @@ public abstract class AppMainBaseWithSplash extends Application {
      * Returns the exception handler which will be used for unchecked exceptions in JavaFX Application Thread.
      * Should check if the current thread is FX Application thread when trying to show any dialog.
      *
+     * @param _stage initial stage
      * @return {@link UncaughtExceptionHandler}
      */
-    protected UncaughtExceptionHandler getUncaughtExceptionHandler() {
+    protected UncaughtExceptionHandler getUncaughtExceptionHandler(Stage _stage) {
         return (_thread, _ex) -> {
             logger.log(Level.ERROR, "Uncaught exception in thread '{}'", _thread, _ex);
             if (Platform.isFxApplicationThread()) {
-                FxDialogUtils.showExceptionDialog(AlertType.ERROR,
+                FxDialogUtils.showExceptionDialog(_stage, AlertType.ERROR,
                         translator.t("error_fxmain_thread_title", "Error"),
                         translator.t("error_fxmain_thread_subtitle", "Fatal Error"),
                         translator.t("error_fxmain_thread_msg", "Unexpected error: %s", _ex.toString()),
@@ -285,7 +289,7 @@ public abstract class AppMainBaseWithSplash extends Application {
             Application.launch(getClass(), _args);
 
         } catch (Exception _ex) {
-            Consumer<Exception> handleOtherStartupExceptions = handleOtherStartupExceptions();
+            Consumer<Exception> handleOtherStartupExceptions = handleOtherStartupExceptions(null);
             if (handleOtherStartupExceptions != null) {
                 handleOtherStartupExceptions.accept(_ex);
             }
@@ -305,13 +309,13 @@ public abstract class AppMainBaseWithSplash extends Application {
             Application.launch(getClass(), _args);
 
         } catch (AppAlreadyRunningException _ex) {
-            Consumer<AppAlreadyRunningException> handleAppAlreadyRunning = handleAppAlreadyRunning();
+            Consumer<AppAlreadyRunningException> handleAppAlreadyRunning = handleAppAlreadyRunning(null);
             if (handleAppAlreadyRunning != null) {
                 handleAppAlreadyRunning.accept(_ex);
             }
             return;
         } catch (Exception _ex) {
-            Consumer<Exception> handleOtherStartupExceptions = handleOtherStartupExceptions();
+            Consumer<Exception> handleOtherStartupExceptions = handleOtherStartupExceptions(null);
             if (handleOtherStartupExceptions != null) {
                 handleOtherStartupExceptions.accept(_ex);
             }
@@ -331,7 +335,7 @@ public abstract class AppMainBaseWithSplash extends Application {
                 try {
                     showMainStage(new Stage(StageStyle.DECORATED));
                 } catch (Exception _ex) {
-                    Consumer<Exception> handleOtherStartupExceptions = handleOtherStartupExceptions();
+                    Consumer<Exception> handleOtherStartupExceptions = handleOtherStartupExceptions(_initStage);
                     if (handleOtherStartupExceptions != null) {
                         handleOtherStartupExceptions.accept(_ex);
                     }

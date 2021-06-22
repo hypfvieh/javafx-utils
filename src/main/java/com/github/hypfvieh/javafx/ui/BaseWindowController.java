@@ -11,6 +11,7 @@ import javafx.scene.input.KeyCombination;
 import javafx.stage.Stage;
 
 import com.github.hypfvieh.javafx.fx.FxWindowUtils;
+import com.github.hypfvieh.javafx.fx.IFxDialogAccessor;
 import com.github.hypfvieh.javafx.windows.interfaces.IKeyboardShortcut;
 import com.github.hypfvieh.javafx.windows.interfaces.ISaveWindowPreferences;
 import com.github.hypfvieh.javafx.windows.interfaces.IStageControllerAware;
@@ -21,7 +22,7 @@ import com.github.hypfvieh.javafx.windows.interfaces.IStageControllerAware;
  * @author hypfvieh
  * @since v11.0.0 - 2020-09-11
  */
-public abstract class BaseWindowController implements ISaveWindowPreferences, IKeyboardShortcut, Initializable, IStageControllerAware {
+public abstract class BaseWindowController implements ISaveWindowPreferences, IKeyboardShortcut, Initializable, IStageControllerAware, IFxDialogAccessor {
 
     private boolean closedByWindowManager = true;
 

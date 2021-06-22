@@ -81,7 +81,7 @@ public abstract class BaseWindowSavingController extends BaseWindowController im
     @Override
     public final boolean saveAndClose() {
         if (changed) {
-            ButtonData result = FxDialogUtils.showConfirmYesNo("Es gibt ungespeicherte Änderungen." + System.lineSeparator() + "Sollen diese nun gespeichert werden?", "Änderungen", "Ungespeicherte Änderungen", "Ja", "Nein", "Abbrechen");
+            ButtonData result = FxDialogUtils.showConfirmYesNo(getControllerStage(), "Es gibt ungespeicherte Änderungen." + System.lineSeparator() + "Sollen diese nun gespeichert werden?", "Änderungen", "Ungespeicherte Änderungen", "Ja", "Nein", "Abbrechen");
             if (result == ButtonData.CANCEL_CLOSE) {
                 return false;
             } else if (result == ButtonData.YES) {

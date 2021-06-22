@@ -16,7 +16,9 @@ import javafx.scene.control.TextArea;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.stage.Window;
 
 import com.github.hypfvieh.javafx.utils.StringHelper;
 import com.github.hypfvieh.javafx.utils.Translator;
@@ -30,8 +32,9 @@ import com.github.hypfvieh.javafx.utils.Translator;
 public class FxDialogUtils {
 
     /**
-     * @see #showConfirmYesNo(AlertType, String, String, String, String, String, String)
+     * @see #showConfirmYesNo(Window, AlertType, String, String, String, String, String, String)
      *
+     * @param _owner owner window, null if none
      * @param _msg dialog message
      * @param _title dialog title
      * @param _subTitle dialog header text
@@ -41,9 +44,9 @@ public class FxDialogUtils {
      *
      * @return {@link ButtonData} representing clicked button ({@link ButtonData#YES}, {@link ButtonData#NO}, {@link ButtonData#CANCEL_CLOSE})
      */
-    public static ButtonData showConfirmYesNo(String _msg, String _title, String _subTitle, String _btnYesCaption,
+    public static ButtonData showConfirmYesNo(Window _owner, String _msg, String _title, String _subTitle, String _btnYesCaption,
             String _btnNoCaption, String _btnCancel) {
-       return showConfirmYesNo(AlertType.CONFIRMATION, _msg, _title, _subTitle, _btnYesCaption, _btnNoCaption, _btnCancel);
+       return showConfirmYesNo(_owner, AlertType.CONFIRMATION, _msg, _title, _subTitle, _btnYesCaption, _btnNoCaption, _btnCancel);
 
     }
 
@@ -53,6 +56,7 @@ public class FxDialogUtils {
      * <p>
      * For dialog styling see {@link #styleDialog(Alert, AlertType)}.
      *
+     * @param _owner owner window, null if none
      * @param _type alert type (e.g. information, warning, error)
      * @param _msg message to show
      * @param _title window title
@@ -62,10 +66,10 @@ public class FxDialogUtils {
      * @param _btnCancel Cancel button caption, if null, no button will be shown
      * @return pressed Button (ButtonData.CANCEL_CLOSE in doubt)
      */
-    public static ButtonData showConfirmYesNo(AlertType _type, String _msg, String _title, String _subTitle, String _btnYesCaption,
+    public static ButtonData showConfirmYesNo(Window _owner, AlertType _type, String _msg, String _title, String _subTitle, String _btnYesCaption,
             String _btnNoCaption, String _btnCancel) {
 
-        Alert alert = createDialog(_type, _title, _subTitle, _msg);
+        Alert alert = createDialog(_owner, _type, _title, _subTitle, _msg);
 
         ButtonType btnYes = new ButtonType(_btnYesCaption, ButtonData.YES);
         ButtonType btnNo = new ButtonType(_btnNoCaption, ButtonData.NO);
@@ -85,19 +89,21 @@ public class FxDialogUtils {
      * <p>
      * For dialog styling see {@link #styleDialog(Alert, AlertType)}.
      *
+     * @param _owner owner window, null if none
      * @param _type alert type
      * @param _title title of dialog
      * @param _subTitle subtitle in dialog
      * @param _msg message to display
      */
-    public static void showDialog(AlertType _type, String _title, String _subTitle, String _msg) {
-        Alert alert = createDialog(_type, _title, _subTitle, _msg);
+    public static void showDialog(Window _owner, AlertType _type, String _title, String _subTitle, String _msg) {
+        Alert alert = createDialog(_owner, _type, _title, _subTitle, _msg);
         alert.showAndWait();
     }
 
     /**
      * Create a new dialog of the given type with given title, subtitle and message.
      *
+     * @param _owner owner window, null if none
      * @param _type alert type
      * @param _title title of dialog
      * @param _subTitle subtitle in dialog
@@ -105,11 +111,13 @@ public class FxDialogUtils {
      *
      * @return Alert dialog instance
      */
-    public static Alert createDialog(AlertType _type, String _title, String _subTitle, String _msg) {
+    public static Alert createDialog(Window _owner, AlertType _type, String _title, String _subTitle, String _msg) {
         Alert alert = new Alert(_type);
         alert.setTitle(_title);
         alert.setHeaderText(_subTitle);
         alert.setContentText(_msg);
+        alert.initModality(Modality.APPLICATION_MODAL);
+        alert.initOwner(_owner);
         alert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
         alert.getDialogPane().setMinWidth(500);
         styleDialog(alert, _type);
@@ -119,6 +127,7 @@ public class FxDialogUtils {
     /**
      * Shows a custom dialog with an expandable textbox with exception details.
      *
+     * @param _owner owner window, null if none
      * @param _type alert type
      * @param _title title of dialog
      * @param _subTitle subtitle in dialog
@@ -126,8 +135,8 @@ public class FxDialogUtils {
      * @param _detailsBtnText text on the button to show more details (e.g. the stack trace)
      * @param _ex throwable to show in textbox
      */
-    public static void showExceptionDialog(AlertType _type, String _title, String _subTitle, String _msg, String _detailsBtnText, Throwable _ex) {
-        Alert createDialog = createDialog(_type, _title, _subTitle, _msg);
+    public static void showExceptionDialog(Window _owner, AlertType _type, String _title, String _subTitle, String _msg, String _detailsBtnText, Throwable _ex) {
+        Alert createDialog = createDialog(_owner, _type, _title, _subTitle, _msg);
         setExpandableContent(_detailsBtnText, StringHelper.getStackTrace(_ex), createDialog);
     }
 
@@ -139,7 +148,7 @@ public class FxDialogUtils {
      * @param _alertBox to style
      * @param _type alert type
      */
-    private static void styleDialog(Alert _alertBox, AlertType _type) {
+    static void styleDialog(Alert _alertBox, AlertType _type) {
         if (_alertBox == null || _type == null) {
             return;
         }
@@ -157,22 +166,23 @@ public class FxDialogUtils {
      * Will show error messages if file does not exist or is not readable.
      * If given file is null, nothing will happen.
      *
+     * @param _owner owner window, null if none
      * @param _file file to open
      */
-    public static void openFile(File _file) {
+    public static void openFile(Window _owner, File _file) {
         if (_file == null) {
             return;
         }
         Translator translator = new Translator("DialogUtils");
         if (!_file.exists()) {
-            showDialog(AlertType.ERROR,
+            showDialog(_owner, AlertType.ERROR,
                 translator.t("dlg_openfile_fnf_title", "File not found"),
                 translator.t("dlg_openfile_fnf_title", "File not found"),
                 translator.t("dlg_openfile_fnf_msg_file_not_exists", "File %s could not be opened because it does not exist.", _file)
             );
             return;
         } else if (!_file.canRead()) {
-            showDialog(AlertType.ERROR,
+            showDialog(_owner, AlertType.ERROR,
                     translator.t("dlg_openfile_fnr_title", "File not readable"),
                     translator.t("dlg_openfile_fnr_title", "File not readable"),
                     translator.t("dlg_openfile_fnr_msg", "The file %s cannot be opened because it is not readable.", _file)
@@ -185,7 +195,7 @@ public class FxDialogUtils {
                 Desktop.getDesktop().open(_file);
             } catch (IOException _ex) {
                 Platform.runLater(() -> {
-                    showDialog(AlertType.ERROR,
+                    showDialog(_owner, AlertType.ERROR,
                         translator.t("dlg_openfile_error", "Error"),
                         translator.t("dlg_openfile_error_subtitle", "File could not be opened"),
                         translator.t("dlg_openfile_error_msg", "File could not be opened.%nMaybe there is no default application configured for this file type.")
