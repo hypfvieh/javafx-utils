@@ -15,34 +15,53 @@ import java.util.prefs.Preferences;
  * @author hypfvieh
  * @since v1.0.0 - 2019-07-04
  */
-public final class AppLock implements AutoCloseable {
+public class AppLock implements AutoCloseable {
 
     private static final String APP_LOCK_MARKER = "#AppLock";
 
     private final Logger logger;
     private final Preferences userPrefs;
 
-    private Class<?> mainClass;
+    private String lockName;
     private ServerSocket serverSock;
 
+    private boolean deleteKey = true;
+
     /**
-     * Create a new AppLock instance using the given lock file, will throw if application is already running.
+     * Create a new AppLock instance using the given class as lock name, will throw if application is already running.
      * @param _mainClass main class to apply lock to (never null)
      * @throws AppAlreadyRunningException if application already running
      */
     public AppLock(Class<?> _mainClass) throws AppAlreadyRunningException {
+        this(Objects.requireNonNull(_mainClass, "Mainclass cannot be null").getName(), true);
+    }
+
+    /**
+     * Create a new AppLock instance using the given string as lock name, will throw if application is already running.
+     * @param _lockName name of lock
+     * @param _checkOnCreation executes check in constructor
+     * @throws AppAlreadyRunningException if application already running
+     *
+     * @since 11.0.1 - 2021-08-23
+     */
+    public AppLock(String _lockName, boolean _checkOnCreation) throws AppAlreadyRunningException {
         logger = System.getLogger(getClass().getName());
-        mainClass = Objects.requireNonNull(_mainClass, "Mainclass cannot be null");
+        if (_lockName == null || _lockName.isBlank()) {
+            throw new IllegalArgumentException("Lock name cannot be null or blank");
+        }
+        lockName = _lockName;
         userPrefs = Preferences.userRoot().node(getClass().getName().replace('.', '/'));
 
-        checkLock();
+        if (_checkOnCreation) {
+            checkLock();
+        }
     }
 
     /**
      * Checks previous locks and locks if application not yet running.
      * @throws AppAlreadyRunningException if application is already running
      */
-    private void checkLock() throws AppAlreadyRunningException {
+    public void checkLock() throws AppAlreadyRunningException {
         readLock();
         setupSocket();
     }
@@ -60,6 +79,7 @@ public final class AppLock implements AutoCloseable {
             logger.log(Level.DEBUG, "Port found in perferences is a valid port: {}", readPort);
             int port = Integer.parseInt(readPort);
             if (checkPortInUse(port)) {
+                deleteKey = false;
                 throw new AppAlreadyRunningException("Application already running (Port " + readPort + " in use)");
             }
         } else {
@@ -98,8 +118,16 @@ public final class AppLock implements AutoCloseable {
      * Get the preferences key for this application.
      * @return string
      */
-    private String getPrefKey() {
-        return mainClass.getName() + APP_LOCK_MARKER;
+    protected String getPrefKey() {
+        return lockName + APP_LOCK_MARKER;
+    }
+
+    /**
+     * User preferences.
+     * @return Preferences
+     */
+    protected Preferences getPreferences() {
+        return userPrefs;
     }
 
     /**
@@ -114,6 +142,7 @@ public final class AppLock implements AutoCloseable {
             userPrefs.putInt(getPrefKey(), serverSock.getLocalPort());
             userPrefs.flush();
         } catch (Exception _ex) {
+            deleteKey = false;
             throw new AppAlreadyRunningException("Application appears to be running", _ex);
         }
     }
@@ -139,15 +168,21 @@ public final class AppLock implements AutoCloseable {
      * Cleanup when AppLock is closed (should be called when application is shutting down properly).
      */
     @Override
-    public void close() throws Exception {
+    public void close() {
 
         if (serverSock != null) {
             logger.log(Level.DEBUG, "Releasing server socket with port: {}", serverSock.getLocalPort());
-            serverSock.close();
+            try {
+                serverSock.close();
+            } catch (IOException _ex) {
+                // ignore this
+            }
         }
 
-        logger.log(Level.DEBUG, "Removing lock information for {}", getPrefKey());
-        userPrefs.remove(getPrefKey());
+        if (deleteKey) {
+            logger.log(Level.DEBUG, "Removing lock information for {}", getPrefKey());
+            userPrefs.remove(getPrefKey());
+        }
     }
 
     /**
