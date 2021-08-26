@@ -6,6 +6,7 @@ import java.lang.System.Logger;
 import java.lang.System.Logger.Level;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.Objects;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import javax.swing.JOptionPane;
@@ -245,6 +246,11 @@ public abstract class AppMainBaseWithSplash extends Application {
 
         Platform.setImplicitExit(false);
 
+        BiConsumer<Stage, WindowOptions> showWindowAction = getShowMainWindowAction(config);
+        if (showWindowAction == null) {
+            throw new NullPointerException("Action to show main window cannot be null");
+        }
+
         WindowOptions windowOptions = new WindowOptions();
         windowOptions
             .withResizeable(true)
@@ -271,9 +277,22 @@ public abstract class AppMainBaseWithSplash extends Application {
                     System.getLogger(getClass().getName()).log(Level.ERROR, "Error while showing window", _ex);
                 }
             });
+        showWindowAction.accept(_stage, windowOptions);
+    }
 
-        FxWindowUtils.showWindowWithValueAndReturn(_stage, getClass(), true, config.getMainWindowFxml(), false, Modality.NONE,
-                windowOptions, config.getMainWindowTitle(), null, null);
+    /**
+     * Shows the main window.
+     * Override this if you want to do custom things before showing the main window.
+     * @param _splashConfig splash configuration
+     *
+     * @return {@link BiConsumer}, the consumer will receive the primary stage (created by {@link Application})
+     *         and preconfigured window options
+     */
+    protected BiConsumer<Stage, WindowOptions> getShowMainWindowAction(SplashAppConfig _splashConfig) {
+        return (s, w) -> {
+            FxWindowUtils.showWindowWithValueAndReturn(s, getClass(), true, _splashConfig.getMainWindowFxml(), false, Modality.NONE,
+                    w, _splashConfig.getMainWindowTitle(), null, null);
+        };
     }
 
     /**
@@ -340,6 +359,9 @@ public abstract class AppMainBaseWithSplash extends Application {
                         handleOtherStartupExceptions.accept(_ex);
                     }
                 }
+            } else if (newState == Worker.State.FAILED) {
+                _initStage.setAlwaysOnTop(false);
+                _initStage.hide();
             }
         });
 
@@ -374,13 +396,15 @@ public abstract class AppMainBaseWithSplash extends Application {
 
         progressBar.setStyle(config.getProgressBarCssStyle());
         progressBar.setMaxWidth(Double.MAX_VALUE);
-
         progressBar.progressProperty().bind(_task.progressProperty());
+
         progressLabel.textProperty().bind(_task.messageProperty());
 
         Scene splashScene = new Scene(splashLayout, Color.TRANSPARENT);
 
-        splashLayout.getChildren().add(progressBar);
+        if (config.isUseProgressBar()) {
+            splashLayout.getChildren().add(progressBar);
+        }
 
         _initStage.setScene(splashScene);
         _initStage.initStyle(StageStyle.TRANSPARENT);
@@ -406,6 +430,8 @@ public abstract class AppMainBaseWithSplash extends Application {
         private Color progressLabelTextColor = Color.ORANGERED;
         private Background progressLabelBackground = Background.EMPTY;
         private String progressBarCssStyle = "-fx-accent: orange;";
+
+        private boolean useProgressBar = true;
 
         public SplashAppConfig(String _mainWindowFxml, String _splashImage) {
             mainWindowFxml = _mainWindowFxml;
@@ -444,6 +470,17 @@ public abstract class AppMainBaseWithSplash extends Application {
             appIcon = _iconPath;
             return this;
         }
+
+        /**
+         * Enable / disable progress bar visible on splash.
+         * @param _enable true to enable, false to disable
+         * @return this
+         */
+        public SplashAppConfig withUseProgressBar(boolean _enable) {
+            useProgressBar = _enable;
+            return this;
+        }
+
 
         /**
          * Color of the progress label text (default: {@link Color#ORANGERED})
@@ -508,6 +545,10 @@ public abstract class AppMainBaseWithSplash extends Application {
 
         public String getProgressBarCssStyle() {
             return progressBarCssStyle;
+        }
+
+        public boolean isUseProgressBar() {
+            return useProgressBar;
         }
 
     }
