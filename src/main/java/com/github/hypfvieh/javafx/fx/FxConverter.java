@@ -54,6 +54,26 @@ public class FxConverter {
     }
 
     /**
+     * Creates a UnaryOperator usable as filter for filtering all characters invalid for phone numbers.
+     * @param _allowNull true to allow <code>null</code> values.
+     *
+     * @return {@link UnaryOperator}
+     */
+    public static UnaryOperator<Change> createPhoneNumberFilter(boolean _allowNull) {
+        return c -> {
+            if (c.isContentChange()) {
+                if (!c.getControlNewText().matches("[0-9\\-+/ ]+")) {
+                    if (_allowNull && c.getControlNewText() == null || c.getControlNewText().isEmpty()) {
+                        return c;
+                    }
+                    return null;
+                }
+            }
+            return c;
+        };
+    }
+    
+    /**
      * A filter which only allows double patterns.
      * @param _allowNull allow null or empty values
      *
