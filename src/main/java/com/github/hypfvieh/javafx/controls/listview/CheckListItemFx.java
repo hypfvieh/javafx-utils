@@ -4,6 +4,7 @@ import javafx.beans.property.SimpleBooleanProperty;
 
 /**
  * ListItem which contains a value and an additonal boolean to e.g. display a Checkbox.
+ * {@link #toString()} calls will call {@link #toString()} on wrapped object.
  *
  * @author hypfvieh
  * @since v11.0.0 - 2020-10-02
@@ -28,5 +29,11 @@ public class CheckListItemFx<T> extends AbstractListItem<T> {
     public void setChecked(boolean _check) {
         checked.set(_check);
     }
+
+    @Override
+    public String toString() {
+        return String.valueOf(getObject());
+    }
+
 
 }
