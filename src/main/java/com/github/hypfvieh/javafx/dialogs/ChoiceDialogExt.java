@@ -100,6 +100,7 @@ public class ChoiceDialogExt<T> extends Dialog<T> {
         label = createContentLabel(_contentLabelText);
         label.setPrefWidth(Region.USE_COMPUTED_SIZE);
         label.textProperty().bind(dialogPane.contentTextProperty());
+        contentTextProperty().set(_contentLabelText);
 
         dialogPane.contentTextProperty().addListener(o -> updateGrid());
 
@@ -241,7 +242,8 @@ public class ChoiceDialogExt<T> extends Dialog<T> {
         grid.getChildren().clear();
 
         grid.add(label, 0, 0);
-        grid.add(comboBox, 1, 0);
+        grid.add(new Label(""), 0, 1);
+        grid.add(comboBox, 0, 2);
         getDialogPane().setContent(grid);
 
         Platform.runLater(() -> comboBox.requestFocus());
