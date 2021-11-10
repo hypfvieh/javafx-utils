@@ -72,7 +72,7 @@ public class FxConverter {
             return c;
         };
     }
-    
+
     /**
      * A filter which only allows double patterns.
      * @param _allowNull allow null or empty values
@@ -159,7 +159,7 @@ public class FxConverter {
      * @param _anyTitle String to show when value is smaller than 0 or null (cannot be null!)
      * @return Converter
      */
-    public static StringConverter<Integer> createNullawareComboBoxConverter(String _anyTitle) {
+    public static StringConverter<Integer> createNullawareIntegerComboBoxConverter(String _anyTitle) {
         Objects.requireNonNull(_anyTitle, "Null placeholder text cannot be null");
         return new StringConverter<>() {
 
