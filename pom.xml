@@ -13,9 +13,9 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <javafx.version>15.0.1</javafx.version>
+        <javafx.version>17.0.1</javafx.version>
         <junit.version>5.8.1</junit.version>
-        <hibernate-version>5.4.23.Final</hibernate-version>
+        <hibernate-version>5.6.1.Final</hibernate-version>
         <log4j2.version>2.14.1</log4j2.version>
     </properties>
 
@@ -38,6 +38,8 @@
                         <monocle.platform>Headless</monocle.platform>
                         <prism.order>sw</prism.order>
                     </systemPropertyVariables>
+                    <!-- Allow usage of 'require static' JPMS modules in test -->
+                    <argLine>--add-modules=ALL-MODULE-PATH</argLine>
                 </configuration>
             </plugin>
 
@@ -123,7 +125,7 @@
         
         <dependency>
            <groupId>org.hibernate</groupId>
-           <artifactId>hibernate-core</artifactId>
+           <artifactId>hibernate-core-jakarta</artifactId>
            <version>${hibernate-version}</version>
            <scope>provided</scope>
         </dependency>

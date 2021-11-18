@@ -6,11 +6,11 @@ import java.lang.System.Logger.Level;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import javax.persistence.NoResultException;
-import javax.persistence.TypedQuery;
-
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+
+import jakarta.persistence.NoResultException;
+import jakarta.persistence.TypedQuery;
 
 /**
  * Utility to query the database and taking care of exceptions and transactions.
