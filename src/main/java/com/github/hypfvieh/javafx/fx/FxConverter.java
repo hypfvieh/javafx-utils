@@ -54,6 +54,34 @@ public class FxConverter {
     }
 
     /**
+     * Creates a UnaryOperator usable as filter for e.g. Spinner which only allows valid network ports.
+     * @param _allowWellKnown allow well-known ports (1-1024)
+     *
+     * @return {@link UnaryOperator}
+     */
+    public static UnaryOperator<Change> createPortFilter(boolean _allowWellKnown) {
+        return c -> {
+            if (c.isContentChange()) {
+                if (!c.getControlNewText().matches("[0-9]+")) {
+                    if (c.getControlNewText() == null || c.getControlNewText().isEmpty()) {
+                        return c;
+                    }
+                    return null;
+                } else {
+                    int port = Integer.parseInt(c.getControlNewText());
+                    if (port < 0 || port > 65535) {
+                        return c;
+                    }
+                    if (!_allowWellKnown && port >= 1 && port <= 1024) {
+                        return c;
+                    }
+                }
+            }
+            return c;
+        };
+    }
+
+    /**
      * Creates a UnaryOperator usable as filter for filtering all characters invalid for phone numbers.
      * @param _allowNull true to allow <code>null</code> values.
      *
