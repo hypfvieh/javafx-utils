@@ -1,5 +1,6 @@
 package com.github.hypfvieh.javafx.fx;
 
+import java.io.Closeable;
 import java.io.InputStream;
 import java.lang.System.Logger;
 import java.lang.System.Logger.Level;
@@ -339,6 +340,10 @@ public class FxWindowUtils {
                 stage.showAndWait();
             } else {
                 stage.show();
+            }
+
+            if (controller instanceof Closeable) {
+                ((Closeable) controller).close();
             }
 
             // return a proper result if we have a return class and the controller is an instance of IResultProvider

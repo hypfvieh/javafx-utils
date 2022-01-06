@@ -138,6 +138,7 @@ public class FxDialogUtils {
     public static void showExceptionDialog(Window _owner, AlertType _type, String _title, String _subTitle, String _msg, String _detailsBtnText, Throwable _ex) {
         Alert createDialog = createDialog(_owner, _type, _title, _subTitle, _msg);
         setExpandableContent(_detailsBtnText, StringHelper.getStackTrace(_ex), createDialog);
+        createDialog.showAndWait();
     }
 
     /**
