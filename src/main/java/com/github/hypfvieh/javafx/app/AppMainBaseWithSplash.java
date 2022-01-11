@@ -419,7 +419,7 @@ public abstract class AppMainBaseWithSplash extends Application {
      * @author hypfvieh
      * @since v11.0.0 - 2020-09-12
      */
-    protected static class SplashAppConfig {
+    public static class SplashAppConfig {
         private final String mainWindowFxml;
         private final String splashImage;
 
