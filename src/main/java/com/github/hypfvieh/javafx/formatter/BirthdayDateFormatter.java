@@ -1,5 +1,6 @@
 package com.github.hypfvieh.javafx.formatter;
 
+import java.lang.System.Logger.Level;
 import java.time.LocalDate;
 import java.time.chrono.Chronology;
 import java.time.format.DateTimeFormatter;
@@ -63,6 +64,7 @@ public class BirthdayDateFormatter extends StringConverter<LocalDate> {
                 return null;
             }
         } catch (DateTimeParseException _ex) {
+            System.getLogger(getClass().getName()).log(Level.DEBUG, "Error converting date", _ex);
             return null;
         }
     }
