@@ -157,8 +157,14 @@ public class FxWindowUtils {
 
             Object controller = fxmlloader.getController();
 
-            Stage stage = _useRootStage ? _rootStage : new Stage();
-
+            Stage stage ;
+            if (_useRootStage) {
+                stage = _rootStage;
+            } else {
+                stage = new Stage();
+                stage.initOwner(_rootStage);
+            }
+            
             stage.setUserData(controller);
 
             if (controller instanceof BaseWindowController) {
