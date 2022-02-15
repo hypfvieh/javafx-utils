@@ -23,74 +23,74 @@ public class NullSafeDoubleSpinnerValueFactory extends SpinnerValueFactory<Doubl
      * to be equal to the min value, and a default {@code amountToStepBy} of
      * one.
      *
-     * @param min The minimum allowed double value for the Spinner.
-     * @param max The maximum allowed double value for the Spinner.
+     * @param _min The minimum allowed double value for the Spinner.
+     * @param _max The maximum allowed double value for the Spinner.
      */
-    public NullSafeDoubleSpinnerValueFactory(@NamedArg("min") double min,
-                                     @NamedArg("max") double max) {
-        this(min, max, min);
+    public NullSafeDoubleSpinnerValueFactory(@NamedArg("min") double _min,
+                                     @NamedArg("max") double _max) {
+        this(_min, _max, _min);
     }
 
     /**
      * Constructs a new DoubleSpinnerValueFactory with a default
      * {@code amountToStepBy} of one.
      *
-     * @param min The minimum allowed double value for the Spinner.
-     * @param max The maximum allowed double value for the Spinner.
-     * @param initialValue The value of the Spinner when first instantiated, must
+     * @param _min The minimum allowed double value for the Spinner.
+     * @param _max The maximum allowed double value for the Spinner.
+     * @param _initialValue The value of the Spinner when first instantiated, must
      *                     be within the bounds of the min and max arguments, or
      *                     else the min value will be used.
      */
-    public NullSafeDoubleSpinnerValueFactory(@NamedArg("min") double min,
-                                     @NamedArg("max") double max,
-                                     @NamedArg("initialValue") double initialValue) {
-        this(min, max, initialValue, 1);
+    public NullSafeDoubleSpinnerValueFactory(@NamedArg("min") double _min,
+                                     @NamedArg("max") double _max,
+                                     @NamedArg("initialValue") double _initialValue) {
+        this(_min, _max, _initialValue, 1);
     }
 
     /**
      * Constructs a new DoubleSpinnerValueFactory.
      *
-     * @param min The minimum allowed double value for the Spinner.
-     * @param max The maximum allowed double value for the Spinner.
-     * @param initialValue The value of the Spinner when first instantiated, must
+     * @param _min The minimum allowed double value for the Spinner.
+     * @param _max The maximum allowed double value for the Spinner.
+     * @param _initialValue The value of the Spinner when first instantiated, must
      *                     be within the bounds of the min and max arguments, or
      *                     else the min value will be used.
-     * @param amountToStepBy The amount to increment or decrement by, per step.
+     * @param _amountToStepBy The amount to increment or decrement by, per step.
      */
-    public NullSafeDoubleSpinnerValueFactory(@NamedArg("min") double min,
-                                     @NamedArg("max") double max,
-                                     @NamedArg("initialValue") double initialValue,
-                                     @NamedArg("amountToStepBy") double amountToStepBy) {
-        setMin(min);
-        setMax(max);
-        setAmountToStepBy(amountToStepBy);
+    public NullSafeDoubleSpinnerValueFactory(@NamedArg("min") double _min,
+                                     @NamedArg("max") double _max,
+                                     @NamedArg("initialValue") double _initialValue,
+                                     @NamedArg("amountToStepBy") double _amountToStepBy) {
+        setMin(_min);
+        setMax(_max);
+        setAmountToStepBy(_amountToStepBy);
         setConverter(new StringConverter<Double>() {
             private final DecimalFormat df = new DecimalFormat("#.##");
 
-            @Override public String toString(Double value) {
+            @Override public String toString(Double _value) {
                 // If the specified value is null, return a zero-length String
-                if (value == null) {
+                if (_value == null) {
                     return "";
                 }
 
-                return df.format(value);
+                return df.format(_value);
             }
 
-            @Override public Double fromString(String value) {
+            @Override public Double fromString(String _value) {
                 try {
                     // If the specified value is null or zero-length, return null
-                    if (value == null) {
+                    if (_value == null) {
                         return null;
                     }
 
-                    value = value.trim();
+                    _value = _value.trim();
 
-                    if (value.length() < 1) {
+                    if (_value.length() < 1) {
                         return null;
                     }
 
                     // Perform the requested parsing
-                    return df.parse(value).doubleValue();
+                    return df.parse(_value).doubleValue();
                 } catch (ParseException ex) {
                     throw new RuntimeException(ex);
                 }
@@ -108,7 +108,7 @@ public class NullSafeDoubleSpinnerValueFactory extends SpinnerValueFactory<Doubl
                 setValue(getMax());
             }
         });
-        setValue(initialValue >= min && initialValue <= max ? initialValue : min);
+        setValue(_initialValue >= _min && _initialValue <= _max ? _initialValue : _min);
     }
 
 
@@ -139,8 +139,8 @@ public class NullSafeDoubleSpinnerValueFactory extends SpinnerValueFactory<Doubl
         }
     };
 
-    public final void setMin(double value) {
-        min.set(value);
+    public final void setMin(double _value) {
+        min.set(_value);
     }
     public final double getMin() {
         return min.get();
@@ -173,8 +173,8 @@ public class NullSafeDoubleSpinnerValueFactory extends SpinnerValueFactory<Doubl
         }
     };
 
-    public final void setMax(double value) {
-        max.set(value);
+    public final void setMax(double _value) {
+        max.set(_value);
     }
     public final double getMax() {
         return max.get();
@@ -189,8 +189,8 @@ public class NullSafeDoubleSpinnerValueFactory extends SpinnerValueFactory<Doubl
 
     // --- amountToStepBy
     private DoubleProperty amountToStepBy = new SimpleDoubleProperty(this, "amountToStepBy");
-    public final void setAmountToStepBy(double value) {
-        amountToStepBy.set(value);
+    public final void setAmountToStepBy(double _value) {
+        amountToStepBy.set(_value);
     }
     public final double getAmountToStepBy() {
         return amountToStepBy.get();
@@ -206,41 +206,41 @@ public class NullSafeDoubleSpinnerValueFactory extends SpinnerValueFactory<Doubl
 
 
     /** {@inheritDoc} */
-    @Override public void decrement(int steps) {
+    @Override public void decrement(int _steps) {
         final BigDecimal currentValue = BigDecimal.valueOf(getValue());
         final BigDecimal minBigDecimal = BigDecimal.valueOf(getMin());
         final BigDecimal maxBigDecimal = BigDecimal.valueOf(getMax());
         final BigDecimal amountToStepByBigDecimal = BigDecimal.valueOf(getAmountToStepBy());
-        BigDecimal newValue = currentValue.subtract(amountToStepByBigDecimal.multiply(BigDecimal.valueOf(steps)));
+        BigDecimal newValue = currentValue.subtract(amountToStepByBigDecimal.multiply(BigDecimal.valueOf(_steps)));
         setValue(newValue.compareTo(minBigDecimal) >= 0 ? newValue.doubleValue() :
                 (isWrapAround() ? wrapValue(newValue, minBigDecimal, maxBigDecimal).doubleValue() : getMin()));
     }
 
     /** {@inheritDoc} */
-    @Override public void increment(int steps) {
+    @Override public void increment(int _steps) {
         final BigDecimal currentValue = BigDecimal.valueOf(getValue());
         final BigDecimal minBigDecimal = BigDecimal.valueOf(getMin());
         final BigDecimal maxBigDecimal = BigDecimal.valueOf(getMax());
         final BigDecimal amountToStepByBigDecimal = BigDecimal.valueOf(getAmountToStepBy());
-        BigDecimal newValue = currentValue.add(amountToStepByBigDecimal.multiply(BigDecimal.valueOf(steps)));
+        BigDecimal newValue = currentValue.add(amountToStepByBigDecimal.multiply(BigDecimal.valueOf(_steps)));
         setValue(newValue.compareTo(maxBigDecimal) <= 0 ? newValue.doubleValue() :
                 (isWrapAround() ? wrapValue(newValue, minBigDecimal, maxBigDecimal).doubleValue() : getMax()));
     }
 
-    static BigDecimal wrapValue(BigDecimal value, BigDecimal min, BigDecimal max) {
-        if (max.doubleValue() == 0) {
+    static BigDecimal wrapValue(BigDecimal _value, BigDecimal _min, BigDecimal _max) {
+        if (_max.doubleValue() == 0) {
             throw new RuntimeException();
         }
 
         // note that this wrap method differs from the others where we take the
         // difference - in this approach we wrap to the min or max - it feels better
         // to go from 1 to 0, rather than 1 to 0.05 (where max is 1 and step is 0.05).
-        if (value.compareTo(min) < 0) {
-            return max;
-        } else if (value.compareTo(max) > 0) {
-            return min;
+        if (_value.compareTo(_min) < 0) {
+            return _max;
+        } else if (_value.compareTo(_max) > 0) {
+            return _min;
         }
-        return value;
+        return _value;
     }
 
 }

@@ -24,47 +24,47 @@ public class NullSafeIntegerSpinnerValueFactory extends SpinnerValueFactory<Inte
      * Constructs a new IntegerSpinnerValueFactory that sets the initial value
      * to be equal to the min value, and a default {@code amountToStepBy} of one.
      *
-     * @param min The minimum allowed integer value for the Spinner.
-     * @param max The maximum allowed integer value for the Spinner.
+     * @param _min The minimum allowed integer value for the Spinner.
+     * @param _max The maximum allowed integer value for the Spinner.
      */
-    public NullSafeIntegerSpinnerValueFactory(@NamedArg("min") int min,
-                                      @NamedArg("max") int max) {
-        this(min, max, min);
+    public NullSafeIntegerSpinnerValueFactory(@NamedArg("min") int _min,
+                                      @NamedArg("max") int _max) {
+        this(_min, _max, _min);
     }
 
     /**
      * Constructs a new IntegerSpinnerValueFactory with a default
      * {@code amountToStepBy} of one.
      *
-     * @param min The minimum allowed integer value for the Spinner.
-     * @param max The maximum allowed integer value for the Spinner.
-     * @param initialValue The value of the Spinner when first instantiated, must
+     * @param _min The minimum allowed integer value for the Spinner.
+     * @param _max The maximum allowed integer value for the Spinner.
+     * @param _initialValue The value of the Spinner when first instantiated, must
      *                     be within the bounds of the min and max arguments, or
      *                     else the min value will be used.
      */
-    public NullSafeIntegerSpinnerValueFactory(@NamedArg("min") int min,
-                                      @NamedArg("max") int max,
-                                      @NamedArg("initialValue") int initialValue) {
-        this(min, max, initialValue, 1);
+    public NullSafeIntegerSpinnerValueFactory(@NamedArg("min") int _min,
+                                      @NamedArg("max") int _max,
+                                      @NamedArg("initialValue") int _initialValue) {
+        this(_min, _max, _initialValue, 1);
     }
 
     /**
      * Constructs a new IntegerSpinnerValueFactory.
      *
-     * @param min The minimum allowed integer value for the Spinner.
-     * @param max The maximum allowed integer value for the Spinner.
-     * @param initialValue The value of the Spinner when first instantiated, must
+     * @param _min The minimum allowed integer value for the Spinner.
+     * @param _max The maximum allowed integer value for the Spinner.
+     * @param _initialValue The value of the Spinner when first instantiated, must
      *                     be within the bounds of the min and max arguments, or
      *                     else the min value will be used.
-     * @param amountToStepBy The amount to increment or decrement by, per step.
+     * @param _amountToStepBy The amount to increment or decrement by, per step.
      */
-    public NullSafeIntegerSpinnerValueFactory(@NamedArg("min") int min,
-                                      @NamedArg("max") int max,
-                                      @NamedArg("initialValue") int initialValue,
-                                      @NamedArg("amountToStepBy") int amountToStepBy) {
-        setMin(min);
-        setMax(max);
-        setAmountToStepBy(amountToStepBy);
+    public NullSafeIntegerSpinnerValueFactory(@NamedArg("min") int _min,
+                                      @NamedArg("max") int _max,
+                                      @NamedArg("initialValue") int _initialValue,
+                                      @NamedArg("amountToStepBy") int _amountToStepBy) {
+        setMin(_min);
+        setMax(_max);
+        setAmountToStepBy(_amountToStepBy);
         setConverter(new IntegerStringConverter());
 
         valueProperty().addListener((o, oldValue, newValue) -> {
@@ -79,7 +79,7 @@ public class NullSafeIntegerSpinnerValueFactory extends SpinnerValueFactory<Inte
                 setValue(getMax());
             }
         });
-        setValue(initialValue >= min && initialValue <= max ? initialValue : min);
+        setValue(_initialValue >= _min && _initialValue <= _max ? _initialValue : _min);
     }
 
 
@@ -143,8 +143,8 @@ public class NullSafeIntegerSpinnerValueFactory extends SpinnerValueFactory<Inte
         }
     };
 
-    public final void setMax(int value) {
-        max.set(value);
+    public final void setMax(int _value) {
+        max.set(_value);
     }
     public final int getMax() {
         return max.get();
@@ -159,8 +159,8 @@ public class NullSafeIntegerSpinnerValueFactory extends SpinnerValueFactory<Inte
 
     // --- amountToStepBy
     private IntegerProperty amountToStepBy = new SimpleIntegerProperty(this, "amountToStepBy");
-    public final void setAmountToStepBy(int value) {
-        amountToStepBy.set(value);
+    public final void setAmountToStepBy(int _value) {
+        amountToStepBy.set(_value);
     }
     public final int getAmountToStepBy() {
         return amountToStepBy.get();
@@ -182,32 +182,32 @@ public class NullSafeIntegerSpinnerValueFactory extends SpinnerValueFactory<Inte
      **********************************************************************/
 
     /** {@inheritDoc} */
-    @Override public void decrement(int steps) {
+    @Override public void decrement(int _steps) {
         final int min = getMin();
         final int max = getMax();
-        final int newIndex = getValue() - steps * getAmountToStepBy();
+        final int newIndex = getValue() - _steps * getAmountToStepBy();
         setValue(newIndex >= min ? newIndex : (isWrapAround() ? wrapValue(newIndex, min, max) + 1 : min));
     }
 
     /** {@inheritDoc} */
-    @Override public void increment(int steps) {
+    @Override public void increment(int _steps) {
         final int min = getMin();
         final int max = getMax();
         final int currentValue = getValue() == null ? getMin() : getValue();
-        final int newIndex = currentValue + steps * getAmountToStepBy();
+        final int newIndex = currentValue + _steps * getAmountToStepBy();
         setValue(newIndex <= max ? newIndex : (isWrapAround() ? wrapValue(newIndex, min, max) - 1 : max));
     }
 
-    static int wrapValue(int value, int min, int max) {
-        if (max == 0) {
+    static int wrapValue(int _value, int _min, int _max) {
+        if (_max == 0) {
             throw new RuntimeException();
         }
 
-        int r = value % max;
-        if (r > min && max < min) {
-            r = r + max - min;
-        } else if (r < min && max > min) {
-            r = r + max - min;
+        int r = _value % _max;
+        if (r > _min && _max < _min) {
+            r = r + _max - _min;
+        } else if (r < _min && _max > _min) {
+            r = r + _max - _min;
         }
         return r;
     }

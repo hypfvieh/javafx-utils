@@ -44,6 +44,21 @@ public class StringHelper {
     }
 
     /**
+     * Checks if given String is null or blank.
+     * Throws {@link IllegalArgumentException} when String is blank/null.
+     * 
+     * @param _str string to check
+     * @param _message message to show in exception
+     * @return input string if not blank or null
+     */
+    public static String requireNonBlank(String _str, String _message) {
+        if (_str == null || _str.isBlank()) {
+            throw new IllegalArgumentException(_message);
+        }
+        return _str;
+    }
+    
+    /**
      * Return the stack trace of the given throwable as String.
      *
      * @param _throwable throwable/exception

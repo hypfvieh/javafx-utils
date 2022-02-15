@@ -6,10 +6,10 @@ import java.time.chrono.Chronology;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.DateTimeParseException;
-import java.time.format.FormatStyle;
 import java.time.temporal.ChronoField;
-import java.util.Locale;
 import java.util.Objects;
+
+import com.github.hypfvieh.javafx.utils.StringHelper;
 
 import javafx.scene.control.DatePicker;
 import javafx.util.StringConverter;
@@ -24,12 +24,22 @@ import javafx.util.StringConverter;
  */
 public class BirthdayDateFormatter extends StringConverter<LocalDate> {
 
-    private final DatePicker picker;
     private final DateTimeFormatter formatter;
+    private final String datePattern;
+    private final String prePattern;
+    private final String postPattern;
+    private final int baseYear;
+    private final Chronology chrono;
 
-    public BirthdayDateFormatter(DatePicker _picker, DateTimeFormatter _dateFormatter) {
-        picker = Objects.requireNonNull(_picker, "DatePicker cannot be null");
-        formatter = Objects.requireNonNull(_dateFormatter, "Dateformatter cannot be null");
+    public BirthdayDateFormatter(DatePicker _picker, String _datePattern) {
+        datePattern = StringHelper.requireNonBlank(_datePattern, "Date pattern required");
+        
+        chrono = Objects.requireNonNull(_picker, "DatePicker cannot be null").getChronology();
+        formatter = DateTimeFormatter.ofPattern(_datePattern);
+        
+        prePattern = datePattern.substring(0, datePattern.indexOf("y"));
+        postPattern = datePattern.substring(datePattern.lastIndexOf("y")+1);
+        baseYear = LocalDate.now().getYear() - 99;
     }
 
     @Override
@@ -44,15 +54,6 @@ public class BirthdayDateFormatter extends StringConverter<LocalDate> {
     public LocalDate fromString(String _string) {
         try {
             if (_string != null && !_string.isEmpty()) {
-                Locale locale = Locale.getDefault(Locale.Category.FORMAT);
-                Chronology chrono = picker.getChronology();
-                String pattern =
-                    DateTimeFormatterBuilder.getLocalizedDateTimePattern(FormatStyle.SHORT,
-                                                                         null, chrono, locale);
-                String prePattern = pattern.substring(0, pattern.indexOf("y"));
-                String postPattern = pattern.substring(pattern.lastIndexOf("y")+1);
-                int baseYear = LocalDate.now().getYear() - 99;
-
                 DateTimeFormatter df = new DateTimeFormatterBuilder()
                             .parseLenient()
                             .appendPattern(prePattern)
