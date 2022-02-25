@@ -2,6 +2,7 @@ package com.github.hypfvieh.javafx.db;
 
 import java.io.Closeable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -34,6 +35,8 @@ public class DbManager implements Closeable {
     private SessionFactory sessionFactory;
 
     private QueryUtil queryUtil;
+    
+    private Map<String, String> hibernateProperties = new HashMap<>();
 
     private BiFunction<DbCred, String, String> decryptionFunction;
 
@@ -93,6 +96,7 @@ public class DbManager implements Closeable {
     public static void setHibernateProperty(String _property, String _value) {
         INSTANCE.loadConfig();
         INSTANCE.hibernateCfg.setProperty(_property, _value);
+        INSTANCE.hibernateProperties.put(_property, _value);
     }
 
     /**
@@ -139,15 +143,20 @@ public class DbManager implements Closeable {
 
     /**
      * Always creates a new (fresh) instance.
-     * Used hibernate xml and decryption function will be copied from previous instance.
+     * Used hibernate xml, hibernate properties and decryption function will be copied from previous instance.
      */
     public static void newInstance() {
         String hibernateXml = INSTANCE.hibernateXml;
         BiFunction<DbCred, String, String> decryptionFunction = INSTANCE.decryptionFunction;
 
+        Map<String, String> hibernateProps = INSTANCE.hibernateProperties;
+        
         closeInstance();
 
         INSTANCE = new DbManager();
+        for (Entry<String, String> e : hibernateProps.entrySet()) {
+			setHibernateProperty(e.getKey(), e.getValue());
+		}
         setHibernateXml(hibernateXml);
         useEncryption(decryptionFunction);
     }
