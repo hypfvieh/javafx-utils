@@ -108,7 +108,11 @@ public abstract class BaseWindowSavingController extends BaseWindowController im
         }
 
         globalShortcuts.put(new KeyCodeCombination(KeyCode.S,
-                KeyCombination.CONTROL_DOWN), () -> saveChanges());
+                KeyCombination.CONTROL_DOWN), () -> {
+                    if (isChanged()) { // only call save if there are marked changes
+                        saveChanges();
+                    }
+                });
 
         return globalShortcuts;
     }
