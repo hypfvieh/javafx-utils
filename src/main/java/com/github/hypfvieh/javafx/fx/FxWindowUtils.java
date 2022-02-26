@@ -4,12 +4,26 @@ import java.io.Closeable;
 import java.io.InputStream;
 import java.lang.System.Logger;
 import java.lang.System.Logger.Level;
+import java.lang.ref.WeakReference;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import com.github.hypfvieh.javafx.ui.BaseWindowController;
+import com.github.hypfvieh.javafx.windows.interfaces.IBlockClose;
+import com.github.hypfvieh.javafx.windows.interfaces.ICssStyle;
+import com.github.hypfvieh.javafx.windows.interfaces.ICustomInitialize;
+import com.github.hypfvieh.javafx.windows.interfaces.IKeyboardShortcut;
+import com.github.hypfvieh.javafx.windows.interfaces.IObjectConsumer;
+import com.github.hypfvieh.javafx.windows.interfaces.IResultProvider;
+import com.github.hypfvieh.javafx.windows.interfaces.ISaveOnClose;
+import com.github.hypfvieh.javafx.windows.interfaces.IStageControllerAware;
+import com.github.hypfvieh.javafx.windowsaver.WindowPositionSaver;
 
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
@@ -28,17 +42,6 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 
-import com.github.hypfvieh.javafx.ui.BaseWindowController;
-import com.github.hypfvieh.javafx.windows.interfaces.IBlockClose;
-import com.github.hypfvieh.javafx.windows.interfaces.ICssStyle;
-import com.github.hypfvieh.javafx.windows.interfaces.ICustomInitialize;
-import com.github.hypfvieh.javafx.windows.interfaces.IKeyboardShortcut;
-import com.github.hypfvieh.javafx.windows.interfaces.IObjectConsumer;
-import com.github.hypfvieh.javafx.windows.interfaces.IResultProvider;
-import com.github.hypfvieh.javafx.windows.interfaces.ISaveOnClose;
-import com.github.hypfvieh.javafx.windows.interfaces.IStageControllerAware;
-import com.github.hypfvieh.javafx.windowsaver.WindowPositionSaver;
-
 /**
  * Utilities to show, close or modify JavaFx windows.
  *
@@ -54,6 +57,9 @@ public class FxWindowUtils {
     /** It is required to set this to false when using TestFx, otherwise TestFx will get stuck. */
     private static boolean exitAfterLastWindow = true;
 
+    /** Contains all windows flagged with 'onlyonce' opened by FxWindowUtils. */ 
+    private static final Map<String, WeakReference<Stage>> OPENED_WINDOWS = new ConcurrentHashMap<>();
+    
     /**
      * Enable/Disable application termination if last JavaFx window gets closed.
      * <p>
@@ -126,7 +132,7 @@ public class FxWindowUtils {
      * @param _fXmlFile FXML UI file to load
      * @param _wait if true, block until window is closed, false to continue (false will not allow you to get values)
      * @param _modal modality mode
-     * @param _sizeSettings window sizing settings
+     * @param windowOptions additional window options
      * @param _title title for the window
      * @param _resultClass result class of object retrieved from window controller (only possible if controller implements {@link IResultProvider})
      *                      Use null here to disable retrieval of values
@@ -136,11 +142,21 @@ public class FxWindowUtils {
      *
      * @param <T> input object class
      * @param <C> output object class
+     * 
+     * @throws WindowAlreadyOpenedException if window should only be shown once at a time but is opened a second time
+     * @throws NullPointerException when fxml file could not be found by classloader
+     * @throws IllegalArgumentException when controller does not implement required interfaces for some actions (e.g. receiving or returning values)
      */
     @SuppressWarnings("unchecked")
     public static <T, C> C showWindowWithValueAndReturn(Stage _rootStage, Class<?> _rootClass, boolean _useRootStage, String _fXmlFile, boolean _wait, Modality _modal,
-            WindowOptions _sizeSettings, String _title, Class<C> _resultClass, T _obj) {
+            WindowOptions _windowOptions, String _title, Class<C> _resultClass, T _obj) {
 
+        WindowOptions windowOptions = _windowOptions == null ? new WindowOptions() : _windowOptions;
+        
+        if (windowOptions.isOnlyOnce() && OPENED_WINDOWS.containsKey(_fXmlFile)) {
+            throw new WindowAlreadyOpenedException(OPENED_WINDOWS.get(_fXmlFile).get(), "Window " + _fXmlFile + " already opened");
+        }
+        
         Class<?> rootClass = _rootClass;
         if (_rootClass == null) {
             rootClass = FxWindowUtils.class;
@@ -189,12 +205,17 @@ public class FxWindowUtils {
             stage.initModality(_modal);
             stage.setTitle(_title);
 
-            stage.setResizable(_sizeSettings.isResizeable());
-            stage.setMaximized(_sizeSettings.isMaximize());
+            if (windowOptions.isResizeable() != null) {
+                stage.setResizable(windowOptions.isResizeable());
+            }
+            
+            if (windowOptions.isMaximize() != null) {
+                stage.setMaximized(windowOptions.isMaximize());
+            }
 
-            if (_sizeSettings.isAlwaysOnTop()) {
+            if (windowOptions.isAlwaysOnTop()) {
                 stage.setAlwaysOnTop(true);
-            } else if (_sizeSettings.isCloseOnFocusLost()) {
+            } else if (windowOptions.isCloseOnFocusLost()) {
                 stage.focusedProperty().addListener(new ChangeListener<Boolean>() {
 
                     @Override
@@ -207,15 +228,15 @@ public class FxWindowUtils {
                 });
             }
 
-            if (_sizeSettings.getWidth() > 0) {
-                stage.setWidth(_sizeSettings.getWidth());
+            if (windowOptions.getWidth() > 0) {
+                stage.setWidth(windowOptions.getWidth());
             }
-            if (_sizeSettings.getHeight() > 0) {
-                stage.setHeight(_sizeSettings.getHeight());
+            if (windowOptions.getHeight() > 0) {
+                stage.setHeight(windowOptions.getHeight());
             }
 
             List<String> possibleIcons = new ArrayList<>();
-            possibleIcons.add(_sizeSettings.getIcon());
+            possibleIcons.add(windowOptions.getIcon());
             possibleIcons.add("images/" + controller.getClass().getSimpleName() + ".png");
             possibleIcons.add(default_window_icon);
 
@@ -237,6 +258,10 @@ public class FxWindowUtils {
 
             Scene scene = new Scene(root);
 
+            if (!windowOptions.getCssStyleSheets().isEmpty()) {
+                scene.getStylesheets().addAll(windowOptions.getCssStyleSheets());
+            }
+            
             if (controller instanceof ICssStyle) {
                 ICssStyle cssStyle = (ICssStyle) controller;
                 List<String> cssStyleFiles = cssStyle.getCssStyleFiles();
@@ -278,53 +303,18 @@ public class FxWindowUtils {
             }
 
             AtomicBoolean systemClosedButtonUsed = new AtomicBoolean(false);
-            if (controller instanceof ISaveOnClose) {
-                stage.setOnCloseRequest(ev -> {
-                    try {
-                        if (!((ISaveOnClose) controller).saveAndClose()) {
-                            ev.consume(); // consume event, do not close window
-                        }
 
-                        if (controller instanceof IBlockClose && !((IBlockClose) controller).allowClose()) {
-                            ev.consume();
-                            Runnable action = ((IBlockClose) controller).getBlockAction();
-                            if (action != null) {
-                                action.run();
-                            }
-                        }
-                        if (controller instanceof BaseWindowController) {
-                            systemClosedButtonUsed.set(((BaseWindowController) stage.getUserData()).isClosedByWindowManager());
-                        }
-                        if (_sizeSettings.getRunOnClose() != null) {
-                            _sizeSettings.getRunOnClose().run();
-                        }
-                    } catch (Exception _ex) {
-                        new RuntimeException("Error executing closing action.", _ex);
-                    }
-                    WindowPositionSaver.saveWindowPosition(((Initializable) controller), stage);
-                });
-            } else if (controller instanceof IBlockClose) {
-                stage.setOnCloseRequest(ev -> {
-                    if (!((IBlockClose) controller).allowClose()) {
-                        ev.consume();
-                        Runnable action = ((IBlockClose) controller).getBlockAction();
-                        if (action != null) {
-                            action.run();
-                        }
-                        if (_sizeSettings.getRunOnClose() != null) {
-                            _sizeSettings.getRunOnClose().run();
-                        }
-                    }
-                    WindowPositionSaver.saveWindowPosition(((Initializable) controller), stage);
-                });
-            } else {
-                stage.setOnCloseRequest(ev -> {
-                    WindowPositionSaver.saveWindowPosition(((Initializable) controller), stage);
-                    if (_sizeSettings.getRunOnClose() != null) {
-                        _sizeSettings.getRunOnClose().run();
-                    }
-                });
-            }
+            stage.setOnCloseRequest(ev -> {
+                blockClose(windowOptions, controller, stage, ev);
+                saveOnClose(windowOptions, controller, stage, systemClosedButtonUsed, ev);
+                
+                OPENED_WINDOWS.remove(_fXmlFile);
+                
+                WindowPositionSaver.saveWindowPosition(((Initializable) controller), stage);
+                if (windowOptions.getRunOnClose() != null) {
+                    windowOptions.getRunOnClose().run();
+                }
+            });
 
             // do custom initialize as late as possible so we have stage and scene ready to use in controller when
             // custom initialize is called
@@ -332,8 +322,8 @@ public class FxWindowUtils {
                 if (controller instanceof ICustomInitialize) {
                     ((ICustomInitialize) controller).customInitialize();
                 }
-                if (_sizeSettings.getRunOnShow() != null) {
-                    _sizeSettings.getRunOnShow().run();
+                if (windowOptions.getRunOnShow() != null) {
+                    windowOptions.getRunOnShow().run();
                 }
                 if (WindowPositionSaver.isEnabled()) {
                     // restore window settings after stage has been initialized
@@ -341,6 +331,9 @@ public class FxWindowUtils {
                 }
             });
 
+            if (windowOptions.isOnlyOnce()) {
+                OPENED_WINDOWS.put(_fXmlFile, new WeakReference<>(stage));
+            }
 
             if (_wait) {
                 stage.showAndWait();
@@ -367,6 +360,47 @@ public class FxWindowUtils {
             LOGGER.log(Level.ERROR, "Error while showing window:", _ex);
         }
         return null;
+    }
+
+    private static void blockClose(WindowOptions _sizeSettings, Object controller, Stage stage, WindowEvent ev) {
+        if (controller instanceof IBlockClose && !((IBlockClose) controller).allowClose()) {
+            ev.consume();
+            Runnable action = ((IBlockClose) controller).getBlockAction();
+            if (action != null) {
+                action.run();
+            }
+            if (_sizeSettings.getRunOnClose() != null) {
+                _sizeSettings.getRunOnClose().run();
+            }
+        }
+    }
+
+    private static void saveOnClose(WindowOptions _sizeSettings, Object _controller, Stage _stage,
+            AtomicBoolean _systemClosedButtonUsed, WindowEvent _ev) {
+        if (_controller instanceof ISaveOnClose) {
+            try {
+                if (!((ISaveOnClose) _controller).saveAndClose()) {
+                    _ev.consume(); // consume event, do not close window
+                }
+
+                if (_controller instanceof IBlockClose && !((IBlockClose) _controller).allowClose()) {
+                    _ev.consume();
+                    Runnable action = ((IBlockClose) _controller).getBlockAction();
+                    if (action != null) {
+                        action.run();
+                    }
+                }
+                if (_controller instanceof BaseWindowController) {
+                    _systemClosedButtonUsed.set(((BaseWindowController) _stage.getUserData()).isClosedByWindowManager());
+                }
+                if (_sizeSettings.getRunOnClose() != null) {
+                    _sizeSettings.getRunOnClose().run();
+                }
+            } catch (Exception _ex) {
+                new RuntimeException("Error executing closing action.", _ex);
+            }
+        }
+
     }
 
     /**
@@ -514,6 +548,19 @@ public class FxWindowUtils {
             if (_stage.getUserData() instanceof BaseWindowController) {
                 ((BaseWindowController) _stage.getUserData()).setClosedByWindowManager(false);
             }
+            
+            // remove stage from opened window map
+            String removeKey = null;
+            for (Entry<String, WeakReference<Stage>> entry : OPENED_WINDOWS.entrySet()) {
+                if (entry.getValue().get() == _stage) {
+                    removeKey = entry.getKey();
+                    break;
+                }
+            }
+            if (removeKey != null) {
+                OPENED_WINDOWS.remove(removeKey);
+            }
+            
             if (_stage.getUserData() instanceof ISaveOnClose) {
                 ISaveOnClose x = ((ISaveOnClose) _stage.getUserData());
                 if (x.saveAndClose()) {
@@ -577,9 +624,9 @@ public class FxWindowUtils {
         /** Window height */
         private double height;
         /** Maximize window */
-        private boolean maximize;
+        private Boolean maximize;
         /** Allow window resizing (use WindowManager icons to switch to fullscreen or use mouse to change size) */
-        private boolean resizeable;
+        private Boolean resizeable;
         /** Window is always visible */
         private boolean alwaysOnTop;
         /** Window will be closed when it is no longer the active window. Will be ignored if alwaysOnTop is enabled. */
@@ -590,7 +637,11 @@ public class FxWindowUtils {
         private Runnable runOnClose;
         /** Called when window gets shown (after ICustomInitialize). */
         private Runnable runOnShow;
-
+        /** Determine if this window should only be opened once at the same time. */
+        private boolean onlyOnce;
+        
+        private List<String> cssStyleSheets = new ArrayList<>();
+        
         public WindowOptions() {}
 
         public static WindowOptions build() {
@@ -615,20 +666,20 @@ public class FxWindowUtils {
             return this;
         }
 
-        public boolean isMaximize() {
+        public Boolean isMaximize() {
             return maximize;
         }
 
-        public WindowOptions withMaximize(boolean _maximize) {
+        public WindowOptions withMaximize(Boolean _maximize) {
             maximize = _maximize;
             return this;
         }
 
-        public boolean isResizeable() {
+        public Boolean isResizeable() {
             return resizeable;
         }
 
-        public WindowOptions withResizeable(boolean _resizeable) {
+        public WindowOptions withResizeable(Boolean _resizeable) {
             resizeable = _resizeable;
             return this;
         }
@@ -678,7 +729,45 @@ public class FxWindowUtils {
             return this;
         }
 
+        public WindowOptions withOnlyOnce(boolean _val) {
+            onlyOnce = _val;
+            return this;
+        }
 
+        public boolean isOnlyOnce() {
+            return onlyOnce;
+        }
+        
+        public WindowOptions withCssStyleSheets(List<String> _list) {
+            if (_list != null) {
+                cssStyleSheets.addAll(_list);
+            }
+            return this;
+        }
+
+        public List<String> getCssStyleSheets() {
+            return cssStyleSheets;
+        }
+        
     }
 
+    /**
+     * Thrown if a window flagged as 'onlyonce' is tried to be opened a second time.
+     */
+    public static class WindowAlreadyOpenedException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
+
+        private final Stage openedStage;
+        
+        public WindowAlreadyOpenedException(Stage _openedStage, String _message) {
+            super(_message);
+            openedStage = _openedStage;
+        }
+
+        public Stage getOpenedStage() {
+            return openedStage;
+        }
+        
+    }
+    
 }

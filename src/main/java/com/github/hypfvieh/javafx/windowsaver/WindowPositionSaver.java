@@ -272,6 +272,45 @@ public class WindowPositionSaver {
     }
 
     /**
+     * Restores the store default sizes of the given window (if any).
+     * 
+     * @param _controllerClass controller class
+     * @param _stage stage to resize
+     */
+    public static void restoreDefaultWindowSize(Class<?> _controllerClass, Stage _stage) {
+        if (!enabled) {
+            return;
+        }
+        Objects.requireNonNull(_controllerClass, "Controller class cannot be null");
+        Objects.requireNonNull(_stage, "Stage cannot be null");
+
+        WindowPosInfo storedData = getStoredData().get(_controllerClass.getName());
+        if (storedData == null) {
+            return; // no saved defaults
+        }
+
+        _stage.setMaxHeight(storedData.getMaxHeight());
+        _stage.setMinHeight(storedData.getMinHeight());
+
+        _stage.setMinWidth(storedData.getMinWidth());
+        _stage.setMaxWidth(storedData.getMaxWidth());
+        
+        _stage.sizeToScene();
+
+    }
+    
+    /**
+     * Restores the store default sizes of the given window (if any).
+     * 
+     * @param _controller controller
+     * @param _stage stage to resize
+     */
+    public static void restoreDefaultWindowSize(Initializable _controller, Stage _stage) {
+        Objects.requireNonNull(_controller, "Controller cannot be null");
+        restoreDefaultWindowSize(_controller.getClass(), _stage);
+    }
+    
+    /**
      * Restore given stage status/size to values found with the given name.
      * @param _controller controller/window to restore
      * @param _stage stage to restore
