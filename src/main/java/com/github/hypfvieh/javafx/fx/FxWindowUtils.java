@@ -2,8 +2,6 @@ package com.github.hypfvieh.javafx.fx;
 
 import java.io.Closeable;
 import java.io.InputStream;
-import java.lang.System.Logger;
-import java.lang.System.Logger.Level;
 import java.lang.ref.WeakReference;
 import java.net.URL;
 import java.util.ArrayList;
@@ -13,6 +11,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.github.hypfvieh.javafx.ui.BaseWindowController;
 import com.github.hypfvieh.javafx.windows.interfaces.IBlockClose;
@@ -49,7 +50,7 @@ import javafx.stage.WindowEvent;
  * @since v11.0.0 - 2020-10-05
  */
 public class FxWindowUtils {
-    private static final Logger   LOGGER = System.getLogger(FxWindowUtils.class.getName());
+    private static final Logger   LOGGER = LoggerFactory.getLogger(FxWindowUtils.class);
 
     private static final List<String> CSS_THEMES = new ArrayList<>();
     private static String default_window_icon = null;
@@ -357,7 +358,7 @@ public class FxWindowUtils {
         } catch (RuntimeException _ex) {
             throw _ex;
         } catch (Exception _ex) {
-            LOGGER.log(Level.ERROR, "Error while showing window:", _ex);
+            LOGGER.error("Error while showing window:", _ex);
         }
         return null;
     }

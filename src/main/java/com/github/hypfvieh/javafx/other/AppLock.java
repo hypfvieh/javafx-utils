@@ -1,12 +1,13 @@
 package com.github.hypfvieh.javafx.other;
 
 import java.io.IOException;
-import java.lang.System.Logger;
-import java.lang.System.Logger.Level;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Objects;
 import java.util.prefs.Preferences;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Simple class which will use a {@link ServerSocket} to prevent the application from being started more than once.
@@ -45,7 +46,7 @@ public class AppLock implements AutoCloseable {
      * @since 11.0.1 - 2021-08-23
      */
     public AppLock(String _lockName, boolean _checkOnCreation) throws AppAlreadyRunningException {
-        logger = System.getLogger(getClass().getName());
+        logger = LoggerFactory.getLogger(getClass());
         if (_lockName == null || _lockName.isBlank()) {
             throw new IllegalArgumentException("Lock name cannot be null or blank");
         }
@@ -72,11 +73,11 @@ public class AppLock implements AutoCloseable {
      * @throws AppAlreadyRunningException if port is in use
      */
     private void readLock() throws AppAlreadyRunningException {
-        logger.log(Level.DEBUG, "Trying to read lock : {}", getPrefKey());
+        logger.debug("Trying to read lock : {}", getPrefKey());
         String readPort = userPrefs.get(getPrefKey(), "-1");
 
         if (isValidNetworkPort(readPort, true)) {
-            logger.log(Level.DEBUG, "Port found in perferences is a valid port: {}", readPort);
+            logger.debug("Port found in perferences is a valid port: {}", readPort);
             int port = Integer.parseInt(readPort);
             if (checkPortInUse(port)) {
                 deleteKey = false;
@@ -135,10 +136,10 @@ public class AppLock implements AutoCloseable {
      * @throws AppAlreadyRunningException when server socket could not be created
      */
     private void setupSocket() throws AppAlreadyRunningException {
-        logger.log(Level.DEBUG, "Setting up new server socket");
+        logger.debug("Setting up new server socket");
         try {
             serverSock = new ServerSocket(0);
-            logger.log(Level.DEBUG, "Updating lock file with port: {}", serverSock.getLocalPort());
+            logger.debug("Updating lock file with port: {}", serverSock.getLocalPort());
             userPrefs.putInt(getPrefKey(), serverSock.getLocalPort());
             userPrefs.flush();
         } catch (Exception _ex) {
@@ -155,10 +156,10 @@ public class AppLock implements AutoCloseable {
      */
     private boolean checkPortInUse(int _port) {
         try (Socket sock = new Socket("127.0.0.1", _port)) {
-            logger.log(Level.DEBUG, "Port already in use, assuming application already started");
+            logger.debug("Port already in use, assuming application already started");
             return true;
         } catch (IOException _ex) {
-            logger.log(Level.DEBUG, "Port unreachable, assuming application not started");
+            logger.debug("Port unreachable, assuming application not started");
             return false;
         }
     }
@@ -171,7 +172,7 @@ public class AppLock implements AutoCloseable {
     public void close() {
 
         if (serverSock != null) {
-            logger.log(Level.DEBUG, "Releasing server socket with port: {}", serverSock.getLocalPort());
+            logger.debug("Releasing server socket with port: {}", serverSock.getLocalPort());
             try {
                 serverSock.close();
             } catch (IOException _ex) {
@@ -180,7 +181,7 @@ public class AppLock implements AutoCloseable {
         }
 
         if (deleteKey) {
-            logger.log(Level.DEBUG, "Removing lock information for {}", getPrefKey());
+            logger.debug("Removing lock information for {}", getPrefKey());
             userPrefs.remove(getPrefKey());
         }
     }

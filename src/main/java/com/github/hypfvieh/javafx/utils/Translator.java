@@ -1,7 +1,5 @@
 package com.github.hypfvieh.javafx.utils;
 
-import java.lang.System.Logger;
-import java.lang.System.Logger.Level;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
@@ -12,6 +10,9 @@ import java.util.Objects;
 import java.util.ResourceBundle;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 /**
  * Helper for working with resource bundle for translations base on class names.
@@ -21,7 +22,7 @@ import java.util.Set;
  */
 public class Translator {
 
-    private final Logger logger = System.getLogger(getClass().getName());
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private Set<ResourceBundle> bundles = new LinkedHashSet<>();
 
@@ -115,7 +116,7 @@ public class Translator {
         if (str.contains("%s")) {
             int countSubString = StringHelper.countSubString(str, "%s");
             if (countSubString != _placeholder.length) {
-                logger.log(Level.DEBUG, "Placeholder count differs between found and provided placeholders in value of {}, placeholders provided: {}", _key, _placeholder.length);
+                logger.debug("Placeholder count differs between found and provided placeholders in value of {}, placeholders provided: {}", _key, _placeholder.length);
             }
             List<Object> placeholders = new ArrayList<>(Arrays.asList(_placeholder));
             if (countSubString > _placeholder.length) {
@@ -140,14 +141,14 @@ public class Translator {
      */
     public void addResourceBundle(String _bundleName, Locale _locale) {
         if (StringHelper.isBlank(_bundleName)) {
-            logger.log(Level.WARNING, "Cannot load empty/blank bundle name");
+            logger.warn("Cannot load empty/blank bundle name");
             return;
         }
 
         try {
             bundles.add(ResourceBundle.getBundle(_bundleName, _locale == null ? Locale.getDefault() : _locale));
         } catch (java.util.MissingResourceException _ex) {
-            logger.log(Level.WARNING, "Requested resource bundle {} not found", _bundleName);
+            logger.warn("Requested resource bundle {} not found", _bundleName);
         }
     }
 
@@ -183,7 +184,7 @@ public class Translator {
         }
 
         if (addBundles.isEmpty()) {
-            logger.log(Level.WARNING, "No resource bundle found for {}", _clz.getName());
+            logger.warn("No resource bundle found for {}", _clz.getName());
         } else {
             bundles.addAll(addBundles);
         }

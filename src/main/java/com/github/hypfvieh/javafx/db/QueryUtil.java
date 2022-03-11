@@ -1,13 +1,13 @@
 package com.github.hypfvieh.javafx.db;
 
 import java.io.Closeable;
-import java.lang.System.Logger;
-import java.lang.System.Logger.Level;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.TypedQuery;
@@ -27,7 +27,7 @@ public class QueryUtil implements Closeable {
     private final SessionFactory dbFactory;
 
     public QueryUtil(SessionFactory _dbFactory) {
-        logger = System.getLogger(getClass().getName());
+        logger = LoggerFactory.getLogger(getClass());
         dbFactory = _dbFactory;
         defaultSession = _dbFactory.openSession();
     }
@@ -141,7 +141,7 @@ public class QueryUtil implements Closeable {
             }
 
         } catch (RuntimeException _ex) {
-            logger.log(Level.ERROR, "Error while performing database action.", _ex);
+            logger.error("Error while performing database action.", _ex);
             fixOpenTransactions(session);
             if (!_catchAllExceptions) {
                 throw _ex;
@@ -257,7 +257,7 @@ public class QueryUtil implements Closeable {
             }
             return result;
         } catch (RuntimeException _ex) {
-            logger.log(Level.ERROR, "Error while performing database action.", _ex);
+            logger.error("Error while performing database action.", _ex);
             fixOpenTransactions(session);
             if (!_catchAllExceptions) {
                 throw _ex;
@@ -273,7 +273,7 @@ public class QueryUtil implements Closeable {
      */
     public void closeSession() {
         if (defaultSession.isOpen()) {
-            logger.log(Level.INFO, "Closing DB session {}", defaultSession);
+            logger.info("Closing DB session {}", defaultSession);
             defaultSession.close();
         }
     }

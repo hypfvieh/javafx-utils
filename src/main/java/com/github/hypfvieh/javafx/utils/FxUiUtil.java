@@ -1,9 +1,10 @@
 package com.github.hypfvieh.javafx.utils;
 
 import java.io.IOException;
-import java.lang.System.Logger;
-import java.lang.System.Logger.Level;
 import java.util.Optional;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
@@ -24,7 +25,7 @@ import javafx.stage.Stage;
  */
 public class FxUiUtil {
 
-    private static final Logger LOGGER = System.getLogger(FxUiUtil.class.getName());
+    private static final Logger LOGGER = LoggerFactory.getLogger(FxUiUtil.class);
 
     /**
      * Opens a JavaFX window using an FXML file.
@@ -54,7 +55,7 @@ public class FxUiUtil {
                 stage.show();
             }
         } catch (IOException _ex) {
-            LOGGER.log(Level.ERROR, "Error while showing window:",_ex);
+            LOGGER.error("Error while showing window:",_ex);
         }
 
     }

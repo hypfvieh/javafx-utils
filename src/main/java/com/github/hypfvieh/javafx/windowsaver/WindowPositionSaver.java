@@ -2,22 +2,23 @@ package com.github.hypfvieh.javafx.windowsaver;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.System.Logger;
-import java.lang.System.Logger.Level;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.github.hypfvieh.javafx.windows.interfaces.ISaveWindowPreferences;
+import com.github.hypfvieh.javafx.windows.interfaces.ISaveWindowPreferences.WindowData;
+
 import javafx.fxml.Initializable;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Parent;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
-
-import com.github.hypfvieh.javafx.windows.interfaces.ISaveWindowPreferences;
-import com.github.hypfvieh.javafx.windows.interfaces.ISaveWindowPreferences.WindowData;
 
 /**
  * Helper to save/restore JavaFX window position and status.
@@ -35,8 +36,7 @@ import com.github.hypfvieh.javafx.windows.interfaces.ISaveWindowPreferences.Wind
  */
 public class WindowPositionSaver {
 
-
-    private static final Logger LOGGER = System.getLogger(WindowPositionSaver.class.getName());
+    private static final Logger LOGGER = LoggerFactory.getLogger(WindowPositionSaver.class);
 
     private static IWindowDataStorage storageProvider = new JacksonWithReflectionStorage();
 
@@ -124,7 +124,7 @@ public class WindowPositionSaver {
 			Map<String, WindowPosInfo> readValue = storageProvider.read(prefFile);
 			return readValue;
 		} catch (IOException _ex) {
-			LOGGER.log(Level.ERROR, "Could not read stored window position data from {}.", prefFile, _ex);
+			LOGGER.error("Could not read stored window position data from {}.", prefFile, _ex);
 			return new HashMap<>();
 		}
 
@@ -147,7 +147,7 @@ public class WindowPositionSaver {
         try {
             storageProvider.write(prefFile, _data);
         } catch (IOException _ex) {
-            LOGGER.log(Level.ERROR, "Could not save window position to file {}." , prefFile, _ex);
+            LOGGER.error("Could not save window position to file {}." , prefFile, _ex);
         }
     }
 
@@ -209,7 +209,7 @@ public class WindowPositionSaver {
             posInfo.setTitle(_stage.getTitle());
             storedData.put(_controller.getClass().getName(), posInfo);
 
-            LOGGER.log(Level.DEBUG, "Saving window properties: window={}, width={}, heigth={}, x={}, y={}, maximized={}", _controller.getClass().getName(), _stage.getWidth(), _stage.getHeight(), _stage.getX(), _stage.getY(), _stage.isMaximized());
+            LOGGER.debug("Saving window properties: window={}, width={}, heigth={}, x={}, y={}, maximized={}", _controller.getClass().getName(), _stage.getWidth(), _stage.getHeight(), _stage.getX(), _stage.getY(), _stage.isMaximized());
         }
 
         updateStoredData(storedData);
@@ -247,7 +247,7 @@ public class WindowPositionSaver {
         Map<String, WindowPosInfo> storedData = getStoredData();
         if (storedData.containsKey(_windowClassName)) {
             storedData.remove(_windowClassName);
-            LOGGER.log(Level.DEBUG, "Removing stored window positions for window: {}", _windowClassName);
+            LOGGER.debug("Removing stored window positions for window: {}", _windowClassName);
             updateStoredData(storedData);
         }
     }
@@ -265,9 +265,9 @@ public class WindowPositionSaver {
         }
 
         if (store.delete()) {
-            LOGGER.log(Level.INFO, "Removed all stored window positions ({} deleted)", store);
+            LOGGER.info("Removed all stored window positions ({} deleted)", store);
         } else {
-            LOGGER.log(Level.ERROR, "Could not remove window position data store file {}", store);
+            LOGGER.error("Could not remove window position data store file {}", store);
         }
     }
 
@@ -345,7 +345,7 @@ public class WindowPositionSaver {
 
         // if default has changed, remove saved settings and do NOT load changed window dimensions/positions
         if (maybeUpdateDefaults(posInfo, _controller, _stage, _root)) {
-            LOGGER.log(Level.INFO, "Will not restore window position/dimension due to changed default sizes (removing old invalid)");
+            LOGGER.info("Will not restore window position/dimension due to changed default sizes (removing old invalid)");
             clearSavedWindowPreferences(_controller.getClass());
             return;
         }
@@ -372,7 +372,7 @@ public class WindowPositionSaver {
             return;
         }
 
-        LOGGER.log(Level.DEBUG, "Restoring window properties: window={}, saveLoadOption={}, {}", _controller.getClass().getName(), windowPrefsSaveLoad, posInfo);
+        LOGGER.debug("Restoring window properties: window={}, saveLoadOption={}, {}", _controller.getClass().getName(), windowPrefsSaveLoad, posInfo);
 
         if (windowPrefsSaveLoad == WindowData.BOTH || windowPrefsSaveLoad == WindowData.SIZE) {
             _stage.setHeight(posInfo.getHeight());
@@ -431,7 +431,7 @@ public class WindowPositionSaver {
             Double min = dwp.getStageMinGetter().apply(_stage);
             // minimum value was changed and needs to be bigger than the old value
             if (min > oldDefaultMin) {
-                LOGGER.log(Level.DEBUG, "{} default window min{} changed from {} to {}", _windowClass.getClass().getSimpleName(), dwp.getLogStr(), oldDefaultMin == -1 ? "NOT SET" : oldDefaultMin, min);
+                LOGGER.debug("{} default window min{} changed from {} to {}", _windowClass.getClass().getSimpleName(), dwp.getLogStr(), oldDefaultMin == -1 ? "NOT SET" : oldDefaultMin, min);
                 dwp.getMinSetter().accept(_posInfo, min);
                 hasChanged = true;
             }
@@ -439,7 +439,7 @@ public class WindowPositionSaver {
             Double max = dwp.getStageMaxGetter().apply(_stage);
             // max value was changed and has to be smaller than the old value
             if (max < oldDefaultMax) {
-                LOGGER.log(Level.DEBUG, "{} default window min{} changed from {} to {}", _windowClass.getClass().getSimpleName(), dwp.getLogStr(), oldDefaultMax == -1 ? "NOT SET" : oldDefaultMax, max);
+                LOGGER.debug("{} default window min{} changed from {} to {}", _windowClass.getClass().getSimpleName(), dwp.getLogStr(), oldDefaultMax == -1 ? "NOT SET" : oldDefaultMax, max);
                 dwp.getMaxSetter().accept(_posInfo, min);
                 hasChanged = true;
             }

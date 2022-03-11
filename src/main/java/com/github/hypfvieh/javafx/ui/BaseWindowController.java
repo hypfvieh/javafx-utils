@@ -1,20 +1,22 @@
 package com.github.hypfvieh.javafx.ui;
 
-import java.lang.System.Logger;
 import java.util.HashMap;
 import java.util.Map;
 
-import javafx.fxml.Initializable;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyCodeCombination;
-import javafx.scene.input.KeyCombination;
-import javafx.stage.Stage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.github.hypfvieh.javafx.fx.FxWindowUtils;
 import com.github.hypfvieh.javafx.fx.IFxDialogAccessor;
 import com.github.hypfvieh.javafx.windows.interfaces.IKeyboardShortcut;
 import com.github.hypfvieh.javafx.windows.interfaces.ISaveWindowPreferences;
 import com.github.hypfvieh.javafx.windows.interfaces.IStageControllerAware;
+
+import javafx.fxml.Initializable;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
+import javafx.stage.Stage;
 
 /**
  * Base class for all FXML controller classes.
@@ -28,7 +30,7 @@ public abstract class BaseWindowController implements ISaveWindowPreferences, IK
 
 
     //CHECKSTYLE:OFF
-    protected final Logger logger = System.getLogger(getClass().getName());
+    protected final Logger logger = LoggerFactory.getLogger(getClass());
 
     //CHECKSTYLE:ON
 

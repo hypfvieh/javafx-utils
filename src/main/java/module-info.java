@@ -44,6 +44,7 @@ module com.github.hypfvieh.javafx.utils {
     requires java.desktop;
     requires java.naming;
     requires java.prefs;
+    requires transitive org.slf4j;
     requires transitive javafx.base;
     requires transitive javafx.controls;
     requires transitive javafx.fxml;
