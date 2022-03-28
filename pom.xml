@@ -206,7 +206,7 @@
     <scm>
         <connection>scm:git:ssh//git@github.com/hypfvieh/${project.artifactId}.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/hypfvieh/${project.artifactId}.git</developerConnection>
-        <url>https://github.com/hypfvieh/${project.artifactId}.git</url>
+        <url>ssh://git@github.com/hypfvieh/${project.artifactId}.git</url>
       <tag>HEAD</tag>
   </scm>
 
