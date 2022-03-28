@@ -6,7 +6,7 @@
 
     <groupId>com.github.hypfvieh</groupId>
     <artifactId>javafx-utils</artifactId>
-    <version>11.0.1-SNAPSHOT</version>
+    <version>11.0.1</version>
 
     <name>${project.artifactId}</name>
     <url>https://github.com/hypfvieh/${project.artifactId}</url>
@@ -207,7 +207,7 @@
         <connection>scm:git:https://github.com/hypfvieh/${project.artifactId}.git</connection>
         <developerConnection>scm:git:https://github.com/hypfvieh/${project.artifactId}.git</developerConnection>
         <url>https://github.com/hypfvieh/${project.artifactId}.git</url>
-      <tag>HEAD</tag>
+      <tag>javafx-utils-11.0.1</tag>
   </scm>
 
     <licenses>
