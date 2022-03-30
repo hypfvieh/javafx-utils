@@ -1,5 +1,6 @@
 package com.github.hypfvieh.javafx.fx;
 
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import org.hibernate.internal.util.StringHelper;
@@ -7,6 +8,7 @@ import org.hibernate.internal.util.StringHelper;
 import com.github.hypfvieh.javafx.fx.FxWindowUtils.WindowAlreadyOpenedException;
 import com.github.hypfvieh.javafx.fx.FxWindowUtils.WindowOptions;
 
+import javafx.fxml.Initializable;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
@@ -126,6 +128,19 @@ public class FxWindowPresenter {
      * @return this
      */
     public FxWindowPresenter withRunOnClose(Runnable _runOnClose) {
+        windowOptions.withRunOnClose((c, s) -> _runOnClose.run());
+        return this;
+    }
+
+    /**
+     * Run this BiConsumer when window is getting closed.
+     * BiConsumer will receive controller and stage of the window which is getting closed.
+     * 
+     * @param _runOnClose BiConsumer
+     * 
+     * @return this
+     */
+    public FxWindowPresenter withRunOnClose(BiConsumer<Initializable, Stage> _runOnClose) {
         windowOptions.withRunOnClose(_runOnClose);
         return this;
     }
@@ -138,6 +153,19 @@ public class FxWindowPresenter {
      * @return this
      */
     public FxWindowPresenter withRunOnShow(Runnable _runOnShow) {
+        windowOptions.withRunOnShow((c, s) -> _runOnShow.run());
+        return this;
+    }
+
+    /**
+     * Run this BiConsumer when window is about to be shown.
+     * BiConsumer will receive controller and stage of the window which is getting shown.
+     * 
+     * @param _runOnShow BiConsumer
+     * 
+     * @return this
+     */
+    public FxWindowPresenter withRunOnShow(BiConsumer<Initializable, Stage> _runOnShow) {
         windowOptions.withRunOnShow(_runOnShow);
         return this;
     }

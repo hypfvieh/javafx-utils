@@ -256,7 +256,7 @@ public abstract class AppMainBaseWithSplash extends Application {
         windowOptions
             .withResizeable(true)
             .withIcon(config.getAppIcon())
-            .withRunOnClose(() -> {
+            .withRunOnClose((c, s) -> {
                 try {
                     Runnable shutdownTaskAction = onMainWindowCloseAction(_stage);
                     if (shutdownTaskAction != null) {
@@ -268,7 +268,7 @@ public abstract class AppMainBaseWithSplash extends Application {
                 Platform.setImplicitExit(true);
 
             })
-            .withRunOnShow(() -> {
+            .withRunOnShow((c, s) -> {
                 try {
                     Runnable showAction = onMainWindowShownAction(_stage);
                     if (showAction != null) {

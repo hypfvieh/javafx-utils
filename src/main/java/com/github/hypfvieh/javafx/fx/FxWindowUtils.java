@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.BiConsumer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -306,29 +307,38 @@ public class FxWindowUtils {
             AtomicBoolean systemClosedButtonUsed = new AtomicBoolean(false);
 
             stage.setOnCloseRequest(ev -> {
-                blockClose(windowOptions, controller, stage, ev);
-                saveOnClose(windowOptions, controller, stage, systemClosedButtonUsed, ev);
-                
-                OPENED_WINDOWS.remove(_fXmlFile);
-                
-                WindowPositionSaver.saveWindowPosition(((Initializable) controller), stage);
-                if (windowOptions.getRunOnClose() != null) {
-                    windowOptions.getRunOnClose().run();
+                var c = (Initializable) controller;
+                blockClose(windowOptions, c, stage, ev); // handle blocking
+                saveOnClose(windowOptions, c, stage, systemClosedButtonUsed, ev); // handle save on close
+
+                // set flag if window closed by 'X' of window manager
+                if (c instanceof BaseWindowController) {
+                    systemClosedButtonUsed.set(((BaseWindowController) stage.getUserData()).isClosedByWindowManager());
                 }
+
+                // if there is a run on close action, execute it now
+                if (windowOptions.getRunOnClose() != null) {
+                    windowOptions.getRunOnClose().accept(c, stage);
+                }
+
+                OPENED_WINDOWS.remove(_fXmlFile);
+                WindowPositionSaver.saveWindowPosition(c, stage);
             });
 
             // do custom initialize as late as possible so we have stage and scene ready to use in controller when
             // custom initialize is called
             stage.setOnShown(ev -> {
+                Initializable c = (Initializable) controller;
+                
                 if (controller instanceof ICustomInitialize) {
                     ((ICustomInitialize) controller).customInitialize();
                 }
                 if (windowOptions.getRunOnShow() != null) {
-                    windowOptions.getRunOnShow().run();
+                    windowOptions.getRunOnShow().accept(c, stage);
                 }
                 if (WindowPositionSaver.isEnabled()) {
                     // restore window settings after stage has been initialized
-                    WindowPositionSaver.restoreWindowPosition(((Initializable) controller), stage, root);
+                    WindowPositionSaver.restoreWindowPosition(c, stage, root);
                 }
             });
 
@@ -363,20 +373,20 @@ public class FxWindowUtils {
         return null;
     }
 
-    private static void blockClose(WindowOptions _sizeSettings, Object controller, Stage stage, WindowEvent ev) {
+    private static void blockClose(WindowOptions _sizeSettings, Initializable controller, Stage stage, WindowEvent ev) {
         if (controller instanceof IBlockClose && !((IBlockClose) controller).allowClose()) {
             ev.consume();
             Runnable action = ((IBlockClose) controller).getBlockAction();
             if (action != null) {
                 action.run();
             }
-            if (_sizeSettings.getRunOnClose() != null) {
-                _sizeSettings.getRunOnClose().run();
-            }
+//            if (_sizeSettings.getRunOnClose() != null) {
+//                _sizeSettings.getRunOnClose().accept(controller, stage);
+//            }
         }
     }
 
-    private static void saveOnClose(WindowOptions _sizeSettings, Object _controller, Stage _stage,
+    private static void saveOnClose(WindowOptions _sizeSettings, Initializable _controller, Stage _stage,
             AtomicBoolean _systemClosedButtonUsed, WindowEvent _ev) {
         if (_controller instanceof ISaveOnClose) {
             try {
@@ -391,17 +401,10 @@ public class FxWindowUtils {
                         action.run();
                     }
                 }
-                if (_controller instanceof BaseWindowController) {
-                    _systemClosedButtonUsed.set(((BaseWindowController) _stage.getUserData()).isClosedByWindowManager());
-                }
-                if (_sizeSettings.getRunOnClose() != null) {
-                    _sizeSettings.getRunOnClose().run();
-                }
             } catch (Exception _ex) {
                 new RuntimeException("Error executing closing action.", _ex);
             }
         }
-
     }
 
     /**
@@ -634,10 +637,10 @@ public class FxWindowUtils {
         private boolean closeOnFocusLost;
         /** Window icon. */
         private String icon;
-        /** Called when window gets closed (after IBlockClose, ISaveOnClose). */
-        private Runnable runOnClose;
-        /** Called when window gets shown (after ICustomInitialize). */
-        private Runnable runOnShow;
+        /** Called when window gets closed (after IBlockClose and ISaveOnClose), will receive current controller and stage. */
+        private BiConsumer<Initializable, Stage> runOnClose;
+        /** Called when window gets shown (after ICustomInitialize), will receive controller and stage. */
+        private BiConsumer<Initializable, Stage> runOnShow;
         /** Determine if this window should only be opened once at the same time. */
         private boolean onlyOnce;
         
@@ -703,20 +706,20 @@ public class FxWindowUtils {
             return this;
         }
 
-        public Runnable getRunOnClose() {
+        public BiConsumer<Initializable, Stage> getRunOnClose() {
             return runOnClose;
         }
 
-        public WindowOptions withRunOnClose(Runnable _runOnClose) {
+        public WindowOptions withRunOnClose(BiConsumer<Initializable, Stage> _runOnClose) {
             runOnClose = _runOnClose;
             return this;
         }
 
-        public Runnable getRunOnShow() {
+        public BiConsumer<Initializable, Stage> getRunOnShow() {
             return runOnShow;
         }
 
-        public WindowOptions withRunOnShow(Runnable _runOnShow) {
+        public WindowOptions withRunOnShow(BiConsumer<Initializable, Stage> _runOnShow) {
             runOnShow = _runOnShow;
             return this;
         }
