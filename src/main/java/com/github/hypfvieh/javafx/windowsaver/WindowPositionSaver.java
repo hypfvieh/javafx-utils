@@ -14,11 +14,13 @@ import org.slf4j.LoggerFactory;
 import com.github.hypfvieh.javafx.windows.interfaces.ISaveWindowPreferences;
 import com.github.hypfvieh.javafx.windows.interfaces.ISaveWindowPreferences.WindowData;
 
+import javafx.event.EventHandler;
 import javafx.fxml.Initializable;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Parent;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 
 /**
  * Helper to save/restore JavaFX window position and status.
@@ -374,6 +376,14 @@ public class WindowPositionSaver {
 
         LOGGER.debug("Restoring window properties: window={}, saveLoadOption={}, {}", _controller.getClass().getName(), windowPrefsSaveLoad, posInfo);
 
+        EventHandler<WindowEvent> onShown = _stage.getOnShown();
+        EventHandler<WindowEvent> onCloseRequest = _stage.getOnCloseRequest();
+        
+        _stage.setOnShown(ev -> {});
+        _stage.setOnCloseRequest(ev -> {});
+        
+        _stage.hide(); // hide window so it is not "flickering"
+        
         if (windowPrefsSaveLoad == WindowData.BOTH || windowPrefsSaveLoad == WindowData.SIZE) {
             _stage.setHeight(posInfo.getHeight());
             _stage.setWidth(posInfo.getWidth());
@@ -382,6 +392,11 @@ public class WindowPositionSaver {
 
         _stage.setX(posInfo.getX());
         _stage.setY(posInfo.getY());
+        
+        _stage.show(); // show again
+        _stage.setOnShown(onShown);
+        _stage.setOnCloseRequest(onCloseRequest);
+
     }
 
     /**
