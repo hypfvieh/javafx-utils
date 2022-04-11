@@ -72,8 +72,8 @@ public class FxConverter {
                     if (port < 0 || port > 65535) {
                         return c;
                     }
-                    if (!_allowWellKnown && port >= 1 && port <= 1024) {
-                        return c;
+                    if (!_allowWellKnown && port <= 1024) {
+                        return null;
                     }
                 }
             }
