@@ -43,6 +43,7 @@ import javafx.scene.input.KeyEvent;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
+import javafx.util.Callback;
 
 /**
  * Utilities to show, close or modify JavaFx windows.
@@ -134,8 +135,10 @@ public class FxWindowUtils {
      * @param _fXmlFile FXML UI file to load
      * @param _wait if true, block until window is closed, false to continue (false will not allow you to get values)
      * @param _modal modality mode
-     * @param windowOptions additional window options
+     * @param _windowOptions additional window options
      * @param _title title for the window
+     * @param _controllerInstance custom controller instance to use, will be overridden if _controllerFactory is also set
+     * @param _controllerFactory custom controller factory
      * @param _resultClass result class of object retrieved from window controller (only possible if controller implements {@link IResultProvider})
      *                      Use null here to disable retrieval of values
      * @param _obj object to pass to the window controller (only possible if controller implements {@link IObjectConsumer})
@@ -151,7 +154,7 @@ public class FxWindowUtils {
      */
     @SuppressWarnings("unchecked")
     public static <T, C> C showWindowWithValueAndReturn(Stage _rootStage, Class<?> _rootClass, boolean _useRootStage, String _fXmlFile, boolean _wait, Modality _modal,
-            WindowOptions _windowOptions, String _title, Class<C> _resultClass, T _obj) {
+            WindowOptions _windowOptions, String _title, Object _controllerInstance, Callback<Class<?>, Object> _controllerFactory, Class<C> _resultClass, T _obj) {
 
         WindowOptions windowOptions = _windowOptions == null ? new WindowOptions() : _windowOptions;
         
@@ -171,6 +174,14 @@ public class FxWindowUtils {
 
             FXMLLoader fxmlloader = new FXMLLoader(url);
             fxmlloader.setBuilderFactory(new JavaFXBuilderFactory());
+
+            if (_controllerFactory != null) { // custom factory
+                fxmlloader.setControllerFactory(_controllerFactory);
+                
+            } else if (_controllerInstance != null) { // pass custom controller
+                fxmlloader.setControllerFactory(_param -> _controllerInstance);
+            }
+            
             fxmlloader.load();
 
             Object controller = fxmlloader.getController();
@@ -373,6 +384,40 @@ public class FxWindowUtils {
         return null;
     }
 
+    /**
+     * Show a window or dialog with certain features like setting and getting values.
+     * <p>
+     * To provide a custom icon for the dialog either set the {@link WindowOptions#icon} property or add an image as resource in a subfolder called "images".<br>
+     * The image should have the same name as the controller class and end with '.png'.
+     * <p>
+     * Please note: Getting a value only works if the window is blocking (wait = true).
+     *
+     * @param _rootStage stage to use
+     * @param _rootClass class to use to find fxml files
+     * @param _useRootStage use the given rootStage to show window instead of creating a new stage, this is mainly imported if method is used to show the primary stage when FX application starts
+     * @param _fXmlFile FXML UI file to load
+     * @param _wait if true, block until window is closed, false to continue (false will not allow you to get values)
+     * @param _modal modality mode
+     * @param _windowOptions additional window options
+     * @param _title title for the window
+     * @param _resultClass result class of object retrieved from window controller (only possible if controller implements {@link IResultProvider})
+     *                      Use null here to disable retrieval of values
+     * @param _obj object to pass to the window controller (only possible if controller implements {@link IObjectConsumer})
+     *              Use null to not pass any value to the controller
+     * @return retrieved value of resultClass type or null
+     *
+     * @param <T> input object class
+     * @param <C> output object class
+     * 
+     * @throws WindowAlreadyOpenedException if window should only be shown once at a time but is opened a second time
+     * @throws NullPointerException when fxml file could not be found by classloader
+     * @throws IllegalArgumentException when controller does not implement required interfaces for some actions (e.g. receiving or returning values)
+     */
+    public static <T, C> C showWindowWithValueAndReturn(Stage _rootStage, Class<?> _rootClass, boolean _useRootStage, String _fXmlFile, boolean _wait, Modality _modal,
+            WindowOptions _windowOptions, String _title, Class<C> _resultClass, T _obj) {
+        return showWindowWithValueAndReturn(_rootStage, _rootClass, _useRootStage, _fXmlFile, _wait, _modal, _windowOptions, _title, null, null, _resultClass, _obj);
+    }
+    
     private static void blockClose(WindowOptions _sizeSettings, Initializable controller, Stage stage, WindowEvent ev) {
         if (controller instanceof IBlockClose && !((IBlockClose) controller).allowClose()) {
             ev.consume();
@@ -574,9 +619,10 @@ public class FxWindowUtils {
                 _stage.close();
             }
 
+            _stage.getOnCloseRequest().handle(new WindowEvent(_stage, javafx.stage.WindowEvent.WINDOW_CLOSE_REQUEST));
+
             if (exitAfterLastWindow && Stage.getWindows().isEmpty()) { // no more windows, close application
                 // fire close event to call close handlers
-                _stage.getOnCloseRequest().handle(new WindowEvent(_stage, javafx.stage.WindowEvent.WINDOW_CLOSE_REQUEST));
                 Platform.setImplicitExit(true);
             }
         }

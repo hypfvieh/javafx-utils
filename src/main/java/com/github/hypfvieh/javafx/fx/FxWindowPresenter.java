@@ -3,14 +3,14 @@ package com.github.hypfvieh.javafx.fx;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
-import org.hibernate.internal.util.StringHelper;
-
 import com.github.hypfvieh.javafx.fx.FxWindowUtils.WindowAlreadyOpenedException;
 import com.github.hypfvieh.javafx.fx.FxWindowUtils.WindowOptions;
+import com.github.hypfvieh.javafx.utils.StringHelper;
 
 import javafx.fxml.Initializable;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.util.Callback;
 
 /**
  * Builder to show new windows from FXML files easily.
@@ -19,16 +19,18 @@ import javafx.stage.Stage;
  * @since v11.0.1 - 2022-02-26
  */
 public class FxWindowPresenter {
-    private final WindowOptions windowOptions               = new WindowOptions();
+    private final WindowOptions        windowOptions               = new WindowOptions();
 
-    private String              windowTitle                 = null;
-    private String              fxmlFile                    = null;
-    private Stage               ownerStage                  = null;
-    private boolean             wait                        = false;
-    private Modality            modality                    = Modality.NONE;
-    private boolean             useOwnerStage               = false;
-    private Class<?>            rootClass                   = getClass();
-    private Consumer<Stage>     windowAlreadyShowingHandler = null;
+    private String                     windowTitle                 = null;
+    private String                     fxmlFile                    = null;
+    private Stage                      ownerStage                  = null;
+    private boolean                    wait                        = false;
+    private Modality                   modality                    = Modality.NONE;
+    private boolean                    useOwnerStage               = false;
+    private Class<?>                   rootClass                   = getClass();
+    private Consumer<Stage>            windowAlreadyShowingHandler = null;
+    private Object                     controllerInstance          = null;
+    private Callback<Class<?>, Object> controllerFactory           = null;
     
     /**
      * Set width of the created window.
@@ -197,6 +199,30 @@ public class FxWindowPresenter {
     }
 
     /**
+     * Use this controller instance instead of the controller referenced in FXML file.
+     * This should also be used when no controller is referenced in FXML.
+     *  
+     * @param _controllerInstance
+     * @return this
+     */
+    public FxWindowPresenter withControllerInstance(Object _controllerInstance) {
+        controllerInstance = _controllerInstance;
+        return this;
+    }
+    
+    /**
+     * Use custom controller factory to create new controller instances for this window.<br>
+     * Will override {@link #withControllerInstance(Object)} when both options are set.
+     *  
+     * @param _controllerInstance
+     * @return this
+     */
+    public FxWindowPresenter withControllerFactory(Callback<Class<?>, Object> _controllerFactory) {
+        controllerFactory = _controllerFactory;
+        return this;
+    }
+    
+    /**
      * FXML file containing the window definition (e.g. created with SceneBuilder).
      * 
      * @param _fxmlFile fxml file
@@ -324,7 +350,8 @@ public class FxWindowPresenter {
         }
         
         try {
-            return FxWindowUtils.showWindowWithValueAndReturn(ownerStage, rootClass, useOwnerStage, fxmlFile, wait, modality, windowOptions, windowTitle, _resultClass, _inputObject);
+            return FxWindowUtils.showWindowWithValueAndReturn(ownerStage, rootClass, useOwnerStage, fxmlFile, wait, 
+                    modality, windowOptions, windowTitle, controllerInstance, controllerFactory, _resultClass, _inputObject);
         } catch (WindowAlreadyOpenedException _ex) {
             if (windowAlreadyShowingHandler != null) {
                 windowAlreadyShowingHandler.accept(_ex.getOpenedStage());
