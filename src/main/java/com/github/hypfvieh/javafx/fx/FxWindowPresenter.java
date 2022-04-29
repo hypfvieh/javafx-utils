@@ -83,6 +83,11 @@ public class FxWindowPresenter {
         return this;
     }
 
+    public FxWindowPresenter withForceMaximized(boolean _fullScreen) {
+        windowOptions.withForceFullScreen(_fullScreen);
+        return this;
+    }
+
     /**
      * Toggles if window should be always shown on top of all other windows.
      * Default is false.

@@ -30,6 +30,7 @@ import com.github.hypfvieh.javafx.windowsaver.WindowPositionSaver;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
@@ -41,6 +42,7 @@ import javafx.scene.image.Image;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.stage.Modality;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import javafx.util.Callback;
@@ -350,6 +352,15 @@ public class FxWindowUtils {
                 if (WindowPositionSaver.isEnabled()) {
                     // restore window settings after stage has been initialized
                     WindowPositionSaver.restoreWindowPosition(c, stage, root);
+                    if (windowOptions.isForceFullScreen()) {
+                        ObservableList<Screen> screensForRectangle = Screen.getScreensForRectangle(stage.getX(), stage.getY(), stage.getWidth(), stage.getHeight());
+                        if (!screensForRectangle.isEmpty()) {
+                            stage.setMinWidth(screensForRectangle.get(0).getVisualBounds().getWidth());
+                            stage.setWidth(screensForRectangle.get(0).getVisualBounds().getWidth());
+                            stage.setMinHeight(screensForRectangle.get(0).getVisualBounds().getHeight());
+                            stage.setHeight(screensForRectangle.get(0).getVisualBounds().getHeight());
+                        }
+                    }
                 }
             });
 
@@ -479,11 +490,10 @@ public class FxWindowUtils {
             WindowOptions _sizeSettings, String _title, Class<C> _resultClass, T _obj) {
 
         Stage rootStage = null;
-        Class<?> rootClass = FxWindowUtils.class;
+        Class<?> rootClass = _parentWindow != null ? _parentWindow.getClass() : FxWindowUtils.class;
 
         if (_parentWindow != null && _parentWindow instanceof IStageControllerAware) {
             rootStage = ((IStageControllerAware) _parentWindow).getControllerStage();
-            rootClass = rootStage != null ? rootStage.getClass() : FxWindowUtils.class;
         }
 
         return showWindowWithValueAndReturn(rootStage, rootClass, false, _fXmlFile, _wait, _modal,
@@ -674,9 +684,9 @@ public class FxWindowUtils {
         /** Window height */
         private double height;
         /** Maximize window */
-        private Boolean maximize;
+        private boolean maximize;
         /** Allow window resizing (use WindowManager icons to switch to fullscreen or use mouse to change size) */
-        private Boolean resizeable;
+        private boolean resizeable;
         /** Window is always visible */
         private boolean alwaysOnTop;
         /** Window will be closed when it is no longer the active window. Will be ignored if alwaysOnTop is enabled. */
@@ -689,6 +699,9 @@ public class FxWindowUtils {
         private BiConsumer<Initializable, Stage> runOnShow;
         /** Determine if this window should only be opened once at the same time. */
         private boolean onlyOnce;
+        
+        /** Force the window to take the full space of the current screen/display. */
+        private boolean forceFullScreen;
         
         private List<String> cssStyleSheets = new ArrayList<>();
         
@@ -720,7 +733,7 @@ public class FxWindowUtils {
             return maximize;
         }
 
-        public WindowOptions withMaximize(Boolean _maximize) {
+        public WindowOptions withMaximize(boolean _maximize) {
             maximize = _maximize;
             return this;
         }
@@ -729,7 +742,7 @@ public class FxWindowUtils {
             return resizeable;
         }
 
-        public WindowOptions withResizeable(Boolean _resizeable) {
+        public WindowOptions withResizeable(boolean _resizeable) {
             resizeable = _resizeable;
             return this;
         }
@@ -797,6 +810,15 @@ public class FxWindowUtils {
 
         public List<String> getCssStyleSheets() {
             return cssStyleSheets;
+        }
+
+        public boolean isForceFullScreen() {
+            return forceFullScreen;
+        }
+
+        public WindowOptions withForceFullScreen(boolean _forceFullScreen) {
+            forceFullScreen = _forceFullScreen;
+            return this;
         }
         
     }
