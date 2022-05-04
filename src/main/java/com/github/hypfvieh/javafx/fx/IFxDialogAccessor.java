@@ -97,6 +97,7 @@ public interface IFxDialogAccessor {
     default void showExceptionDialog(AlertType _type, String _title, String _subTitle, String _msg, String _detailsBtnText, Throwable _ex) {
         Alert createDialog = createDialog(_type, _title, _subTitle, _msg);
         FxDialogUtils.setExpandableContent(_detailsBtnText, StringHelper.getStackTrace(_ex), createDialog);
+        createDialog.showAndWait();
     }
 
     /**
