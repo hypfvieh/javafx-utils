@@ -35,7 +35,7 @@ public class DbManager implements Closeable {
     private SessionFactory sessionFactory;
 
     private QueryUtil queryUtil;
-    
+
     private Map<String, String> hibernateProperties = new HashMap<>();
 
     private BiFunction<DbCred, String, String> decryptionFunction;
@@ -150,7 +150,7 @@ public class DbManager implements Closeable {
         BiFunction<DbCred, String, String> decryptionFunction = INSTANCE.decryptionFunction;
 
         Map<String, String> hibernateProps = INSTANCE.hibernateProperties;
-        
+
         closeInstance();
 
         INSTANCE = new DbManager();
@@ -186,6 +186,15 @@ public class DbManager implements Closeable {
             INSTANCE.queryUtil =  new QueryUtil(INSTANCE.getSessionFactory());
         }
         return INSTANCE.queryUtil;
+    }
+
+    /**
+     * Checks if a queryUtil was created (using {@link #getQueryUtil()}.
+     *
+     * @return true if queryUtil exists
+     */
+    public static boolean hasQueryUtil() {
+        return INSTANCE.queryUtil != null;
     }
 
     /**
