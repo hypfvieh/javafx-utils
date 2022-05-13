@@ -629,7 +629,9 @@ public class FxWindowUtils {
                 _stage.close();
             }
 
-            _stage.getOnCloseRequest().handle(new WindowEvent(_stage, javafx.stage.WindowEvent.WINDOW_CLOSE_REQUEST));
+            if (_stage.getOnCloseRequest() != null) {
+                _stage.getOnCloseRequest().handle(new WindowEvent(_stage, javafx.stage.WindowEvent.WINDOW_CLOSE_REQUEST));
+            }
 
             if (exitAfterLastWindow && Stage.getWindows().isEmpty()) { // no more windows, close application
                 // fire close event to call close handlers
