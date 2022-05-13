@@ -239,7 +239,9 @@ public class DbManager implements Closeable {
      * Calls close on the internal instance to shutdown all database connections.
      */
     public static void closeInstance() {
-        INSTANCE.close();
+        if (INSTANCE != null) {
+            INSTANCE.close();
+        }
     }
 
     /**
