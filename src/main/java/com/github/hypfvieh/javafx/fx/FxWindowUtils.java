@@ -62,9 +62,9 @@ public class FxWindowUtils {
     /** It is required to set this to false when using TestFx, otherwise TestFx will get stuck. */
     private static boolean exitAfterLastWindow = true;
 
-    /** Contains all windows flagged with 'onlyonce' opened by FxWindowUtils. */ 
+    /** Contains all windows flagged with 'onlyonce' opened by FxWindowUtils. */
     private static final Map<String, WeakReference<Stage>> OPENED_WINDOWS = new ConcurrentHashMap<>();
-    
+
     /**
      * Enable/Disable application termination if last JavaFx window gets closed.
      * <p>
@@ -149,7 +149,7 @@ public class FxWindowUtils {
      *
      * @param <T> input object class
      * @param <C> output object class
-     * 
+     *
      * @throws WindowAlreadyOpenedException if window should only be shown once at a time but is opened a second time
      * @throws NullPointerException when fxml file could not be found by classloader
      * @throws IllegalArgumentException when controller does not implement required interfaces for some actions (e.g. receiving or returning values)
@@ -159,11 +159,11 @@ public class FxWindowUtils {
             WindowOptions _windowOptions, String _title, Object _controllerInstance, Callback<Class<?>, Object> _controllerFactory, Class<C> _resultClass, T _obj) {
 
         WindowOptions windowOptions = _windowOptions == null ? new WindowOptions() : _windowOptions;
-        
+
         if (windowOptions.isOnlyOnce() && OPENED_WINDOWS.containsKey(_fXmlFile)) {
             throw new WindowAlreadyOpenedException(OPENED_WINDOWS.get(_fXmlFile).get(), "Window " + _fXmlFile + " already opened");
         }
-        
+
         Class<?> rootClass = _rootClass;
         if (_rootClass == null) {
             rootClass = FxWindowUtils.class;
@@ -179,11 +179,11 @@ public class FxWindowUtils {
 
             if (_controllerFactory != null) { // custom factory
                 fxmlloader.setControllerFactory(_controllerFactory);
-                
+
             } else if (_controllerInstance != null) { // pass custom controller
                 fxmlloader.setControllerFactory(_param -> _controllerInstance);
             }
-            
+
             fxmlloader.load();
 
             Object controller = fxmlloader.getController();
@@ -195,7 +195,7 @@ public class FxWindowUtils {
                 stage = new Stage();
                 stage.initOwner(_rootStage);
             }
-            
+
             stage.setUserData(controller);
 
             if (controller instanceof BaseWindowController) {
@@ -223,7 +223,7 @@ public class FxWindowUtils {
             if (windowOptions.isResizeable() != null) {
                 stage.setResizable(windowOptions.isResizeable());
             }
-            
+
             if (windowOptions.isMaximize() != null) {
                 stage.setMaximized(windowOptions.isMaximize());
             }
@@ -276,7 +276,7 @@ public class FxWindowUtils {
             if (!windowOptions.getCssStyleSheets().isEmpty()) {
                 scene.getStylesheets().addAll(windowOptions.getCssStyleSheets());
             }
-            
+
             if (controller instanceof ICssStyle) {
                 ICssStyle cssStyle = (ICssStyle) controller;
                 List<String> cssStyleFiles = cssStyle.getCssStyleFiles();
@@ -342,7 +342,7 @@ public class FxWindowUtils {
             // custom initialize is called
             stage.setOnShown(ev -> {
                 Initializable c = (Initializable) controller;
-                
+
                 if (controller instanceof ICustomInitialize) {
                     ((ICustomInitialize) controller).customInitialize();
                 }
@@ -419,7 +419,7 @@ public class FxWindowUtils {
      *
      * @param <T> input object class
      * @param <C> output object class
-     * 
+     *
      * @throws WindowAlreadyOpenedException if window should only be shown once at a time but is opened a second time
      * @throws NullPointerException when fxml file could not be found by classloader
      * @throws IllegalArgumentException when controller does not implement required interfaces for some actions (e.g. receiving or returning values)
@@ -428,7 +428,7 @@ public class FxWindowUtils {
             WindowOptions _windowOptions, String _title, Class<C> _resultClass, T _obj) {
         return showWindowWithValueAndReturn(_rootStage, _rootClass, _useRootStage, _fXmlFile, _wait, _modal, _windowOptions, _title, null, null, _resultClass, _obj);
     }
-    
+
     private static void blockClose(WindowOptions _sizeSettings, Initializable controller, Stage stage, WindowEvent ev) {
         if (controller instanceof IBlockClose && !((IBlockClose) controller).allowClose()) {
             ev.consume();
@@ -607,7 +607,7 @@ public class FxWindowUtils {
             if (_stage.getUserData() instanceof BaseWindowController) {
                 ((BaseWindowController) _stage.getUserData()).setClosedByWindowManager(false);
             }
-            
+
             // remove stage from opened window map
             String removeKey = null;
             for (Entry<String, WeakReference<Stage>> entry : OPENED_WINDOWS.entrySet()) {
@@ -619,7 +619,7 @@ public class FxWindowUtils {
             if (removeKey != null) {
                 OPENED_WINDOWS.remove(removeKey);
             }
-            
+
             if (_stage.getUserData() instanceof ISaveOnClose) {
                 ISaveOnClose x = ((ISaveOnClose) _stage.getUserData());
                 if (x.saveAndClose()) {
@@ -699,12 +699,12 @@ public class FxWindowUtils {
         private BiConsumer<Initializable, Stage> runOnShow;
         /** Determine if this window should only be opened once at the same time. */
         private boolean onlyOnce;
-        
+
         /** Force the window to take the full space of the current screen/display. */
         private boolean forceFullScreen;
-        
+
         private List<String> cssStyleSheets = new ArrayList<>();
-        
+
         public WindowOptions() {}
 
         public static WindowOptions build() {
@@ -800,7 +800,7 @@ public class FxWindowUtils {
         public boolean isOnlyOnce() {
             return onlyOnce;
         }
-        
+
         public WindowOptions withCssStyleSheets(List<String> _list) {
             if (_list != null) {
                 cssStyleSheets.addAll(_list);
@@ -820,7 +820,7 @@ public class FxWindowUtils {
             forceFullScreen = _forceFullScreen;
             return this;
         }
-        
+
     }
 
     /**
@@ -830,7 +830,7 @@ public class FxWindowUtils {
         private static final long serialVersionUID = 1L;
 
         private final Stage openedStage;
-        
+
         public WindowAlreadyOpenedException(Stage _openedStage, String _message) {
             super(_message);
             openedStage = _openedStage;
@@ -839,7 +839,7 @@ public class FxWindowUtils {
         public Stage getOpenedStage() {
             return openedStage;
         }
-        
+
     }
-    
+
 }
