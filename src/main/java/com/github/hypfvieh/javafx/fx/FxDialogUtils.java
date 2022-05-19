@@ -5,6 +5,9 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 
+import com.github.hypfvieh.javafx.utils.StringHelper;
+import com.github.hypfvieh.javafx.utils.Translator;
+
 import javafx.application.Platform;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
@@ -19,9 +22,6 @@ import javafx.scene.layout.Region;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.Window;
-
-import com.github.hypfvieh.javafx.utils.StringHelper;
-import com.github.hypfvieh.javafx.utils.Translator;
 
 /**
  * Helper to display various types of message dialogs.
@@ -163,12 +163,12 @@ public class FxDialogUtils {
     }
 
     /**
-     * Opens the given file in the associated program.
-     * Will show error messages if file does not exist or is not readable.
+     * Opens the given file or directory in the associated program.
+     * Will show error messages if file/directory does not exist or is not readable.
      * If given file is null, nothing will happen.
      *
      * @param _owner owner window, null if none
-     * @param _file file to open
+     * @param _file file or directory to open
      */
     public static void openFile(Window _owner, File _file) {
         if (_file == null) {
@@ -177,34 +177,52 @@ public class FxDialogUtils {
         Translator translator = new Translator("DialogUtils");
         if (!_file.exists()) {
             showDialog(_owner, AlertType.ERROR,
-                translator.t("dlg_openfile_fnf_title", "File not found"),
-                translator.t("dlg_openfile_fnf_title", "File not found"),
-                translator.t("dlg_openfile_fnf_msg_file_not_exists", "File %s could not be opened because it does not exist.", _file)
+                translator.t("dlg_openfile_fnf_title", "File or directory not found"),
+                translator.t("dlg_openfile_fnf_title", "File or directory not found"),
+                translator.t("dlg_openfile_fnf_msg_file_not_exists", "File/Directory %s could not be opened because it does not exist.", _file)
             );
             return;
         } else if (!_file.canRead()) {
-            showDialog(_owner, AlertType.ERROR,
+            if (_file.isDirectory()) {
+                showDialog(_owner, AlertType.ERROR,
+                        translator.t("dlg_opendir_dnr_title", "Directory not readable"),
+                        translator.t("dlg_opendir_dnr_title", "Directory not readable"),
+                        translator.t("dlg_opendir_dnr_msg", "The directory %s cannot be opened because it is not readable.", _file)
+                        );
+            } else {
+                showDialog(_owner, AlertType.ERROR,
                     translator.t("dlg_openfile_fnr_title", "File not readable"),
                     translator.t("dlg_openfile_fnr_title", "File not readable"),
                     translator.t("dlg_openfile_fnr_msg", "The file %s cannot be opened because it is not readable.", _file)
                     );
+            }
             return;
         }
 
-        new Thread(() -> {
+        Thread thread = new Thread(() -> {
             try {
                 Desktop.getDesktop().open(_file);
             } catch (IOException _ex) {
                 Platform.runLater(() -> {
-                    showDialog(_owner, AlertType.ERROR,
-                        translator.t("dlg_openfile_error", "Error"),
-                        translator.t("dlg_openfile_error_subtitle", "File could not be opened"),
-                        translator.t("dlg_openfile_error_msg", "File could not be opened.%nMaybe there is no default application configured for this file type.")
-                    );
+                    if (_file.isDirectory()) {
+                        showDialog(_owner, AlertType.ERROR,
+                                translator.t("dlg_opendir_error", "Error"),
+                                translator.t("dlg_opendir_error_subtitle", "Directory could not be opened"),
+                                translator.t("dlg_opendir_error_msg", "Directory could not be opened.%nMaybe there is no default application configured for opening directories.")
+                            );
+                    } else {
+                        showDialog(_owner, AlertType.ERROR,
+                            translator.t("dlg_openfile_error", "Error"),
+                            translator.t("dlg_openfile_error_subtitle", "File could not be opened"),
+                            translator.t("dlg_openfile_error_msg", "File could not be opened.%nMaybe there is no default application configured for this file type.")
+                        );
+                    }
 
                 });
             }
-        }).start();
+        }, "open-file:" + _file.getName());
+        thread.setDaemon(true);
+        thread.start();
     }
 
     /**
