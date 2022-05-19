@@ -1,6 +1,7 @@
 package com.github.hypfvieh.javafx.db;
 
 import java.io.Closeable;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -362,4 +363,27 @@ public class QueryUtil implements Closeable {
         }
     }
 
+    /**
+     * Persists or merges an entity.
+     * 
+     * @param <T> type of object
+     * @param _session session to use
+     * @param _obj object to persist/merge (never null!)
+     * @param _primaryKey primary key to identify object in database/persistence
+     * 
+     * @return the given object or the merged instance of the object (depending on operation)
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> T saveOrUpdate(Session _session, T _obj, Object _primaryKey) {
+        Objects.requireNonNull(_obj, "Object to persist required");
+        Objects.requireNonNull(_primaryKey, "Primary Key required");
+        Objects.requireNonNull(_session, "Session required");
+        
+        if (_session.find(_obj.getClass(), _primaryKey) == null) {
+            _session.persist(_obj);
+            return _obj;
+        } else {
+            return (T) _session.merge(_obj);
+        }
+    }
 }
