@@ -287,6 +287,9 @@ public class QueryUtil implements Closeable {
         dbFactory.close();
     }
 
+    public boolean isClosed() {
+        return dbFactory == null || dbFactory.isClosed();
+    }
 
     /**
      * Check if session is valid (open) and reset all transactions which might be pending.
