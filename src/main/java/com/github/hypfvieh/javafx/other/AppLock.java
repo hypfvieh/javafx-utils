@@ -59,6 +59,28 @@ public class AppLock implements AutoCloseable {
     }
 
     /**
+     * Create a new AppLock instance using the given string as lock name, will throw if application is already running.
+     *
+     * @param _logger logger to use
+     * @param _lockName name of lock
+     * @param _checkOnCreation executes check in constructor
+     * @throws AppAlreadyRunningException if application already running
+     *
+     * @since 11.0.2 - 2022-05-21
+     */
+    public AppLock(Logger _logger, String _lockName, boolean _checkOnCreation) throws AppAlreadyRunningException {
+        logger = _logger == null ? LoggerFactory.getLogger(getClass()) : _logger;
+        if (_lockName == null || _lockName.isBlank()) {
+            throw new IllegalArgumentException("Lock name cannot be null or blank");
+        }
+        lockName = _lockName;
+        userPrefs = Preferences.userRoot().node(getClass().getName().replace('.', '/'));
+
+        if (_checkOnCreation) {
+            checkLock();
+        }
+    }
+    /**
      * Checks previous locks and locks if application not yet running.
      * @throws AppAlreadyRunningException if application is already running
      */
