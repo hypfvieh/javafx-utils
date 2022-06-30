@@ -100,6 +100,16 @@ public class DbManager implements Closeable {
     }
 
     /**
+     * Override hibernate properties of the currently loaded configuration.
+     *
+     * @param _property property name
+     * @param _value value
+     */
+    public static void setHibernateProperty(DbCred _property, String _value) {
+        setHibernateProperty(_property.getHibernateParameter(), _value);
+    }
+
+    /**
      * Returns the database connection credentials.
      * The password will be decrypted if it was encrypted.
      *
