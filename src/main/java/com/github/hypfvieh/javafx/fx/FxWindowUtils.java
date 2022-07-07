@@ -346,9 +346,6 @@ public class FxWindowUtils {
                 if (controller instanceof ICustomInitialize) {
                     ((ICustomInitialize) controller).customInitialize();
                 }
-                if (windowOptions.getRunOnShow() != null) {
-                    windowOptions.getRunOnShow().accept(c, stage);
-                }
                 if (WindowPositionSaver.isEnabled()) {
                     // restore window settings after stage has been initialized
                     WindowPositionSaver.restoreWindowPosition(c, stage, root);
@@ -362,6 +359,11 @@ public class FxWindowUtils {
                         }
                     }
                 }
+
+                if (windowOptions.getRunOnShow() != null) {
+                    windowOptions.getRunOnShow().accept(c, stage);
+                }
+
             });
 
             if (windowOptions.isOnlyOnce()) {
