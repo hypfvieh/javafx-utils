@@ -12,7 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.github.hypfvieh.javafx.windows.interfaces.ISaveWindowPreferences;
-import com.github.hypfvieh.javafx.windows.interfaces.ISaveWindowPreferences.WindowData;
+import com.github.hypfvieh.javafx.windows.interfaces.WindowData;
 
 import javafx.event.EventHandler;
 import javafx.fxml.Initializable;

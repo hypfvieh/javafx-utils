@@ -11,6 +11,7 @@ import com.github.hypfvieh.javafx.fx.IFxDialogAccessor;
 import com.github.hypfvieh.javafx.windows.interfaces.IKeyboardShortcut;
 import com.github.hypfvieh.javafx.windows.interfaces.ISaveWindowPreferences;
 import com.github.hypfvieh.javafx.windows.interfaces.IStageControllerAware;
+import com.github.hypfvieh.javafx.windows.interfaces.WindowData;
 
 import javafx.fxml.Initializable;
 import javafx.scene.input.KeyCode;
