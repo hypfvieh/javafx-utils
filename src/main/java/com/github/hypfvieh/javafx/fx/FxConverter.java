@@ -108,12 +108,26 @@ public class FxConverter {
      * @return {@link UnaryOperator}
      */
     public static UnaryOperator<Change> createDoubleFilter(boolean _allowNull) {
-        char decimalSeparator = DecimalFormatSymbols.getInstance().getDecimalSeparator();
+        return createDecimalFilter(Locale.getDefault(), _allowNull, true);
+    }
+
+    /**
+     * A filter to validate decimal patterns.
+     *
+     * @param _locale locale used to determine decimal separator
+     * @param _allowNull allow null or empty values
+     * @param _allowNegative true allow negative values
+     *
+     * @return {@link UnaryOperator}
+     */
+    public static UnaryOperator<Change> createDecimalFilter(Locale _locale, boolean _allowNull, boolean _allowNegative) {
+        char decimalSeparator = DecimalFormatSymbols.getInstance(_locale).getDecimalSeparator();
+        Pattern pattern = Pattern.compile(_allowNegative ? "-?" : "" + "[0-9]+\\" + decimalSeparator + "?[0-9]*");
         return c -> {
             if (c.isContentChange()) {
                 if (c.getText() == null || c.getControlNewText() == null) {
                     return null;
-                } else if (!c.getControlNewText().matches("-?[0-9]+\\" + decimalSeparator + "?[0-9]*")) {
+                } else if (!pattern.matcher(c.getControlNewText()).matches()) {
                     if (_allowNull && c.getControlNewText() == null || c.getControlNewText().isEmpty()) {
                         return c;
                     }
