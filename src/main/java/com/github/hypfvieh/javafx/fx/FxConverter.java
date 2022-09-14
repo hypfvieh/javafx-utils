@@ -122,7 +122,7 @@ public class FxConverter {
      */
     public static UnaryOperator<Change> createDecimalFilter(Locale _locale, boolean _allowNull, boolean _allowNegative) {
         char decimalSeparator = DecimalFormatSymbols.getInstance(_locale).getDecimalSeparator();
-        Pattern pattern = Pattern.compile(_allowNegative ? "-?" : "" + "[0-9]+\\" + decimalSeparator + "?[0-9]*");
+        Pattern pattern = Pattern.compile((_allowNegative ? "-?" : "") + "[0-9]+\\" + decimalSeparator + "?[0-9]*");
         return c -> {
             if (c.isContentChange()) {
                 if (c.getText() == null || c.getControlNewText() == null) {
