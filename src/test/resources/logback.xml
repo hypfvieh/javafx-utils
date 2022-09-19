@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration>
+
+<configuration debug="false" scan="false" scanPeriod="30 seconds">
+    <import class="ch.qos.logback.classic.encoder.PatternLayoutEncoder" />
+    <import class="ch.qos.logback.classic.filter.ThresholdFilter" />
+    <import class="ch.qos.logback.core.ConsoleAppender" />
+    
+    <appender name="app_stdout" class="ConsoleAppender">
+        <encoder class="PatternLayoutEncoder">
+            <pattern>%d{ISO8601} %-5level [%thread] %logger{3} - %msg%n</pattern>
+        </encoder>
+        <filter class="ThresholdFilter">
+            <level>DEBUG</level>
+        </filter>
+    </appender>
+
+    <root level="DEBUG">
+        <appender-ref ref="app_stdout" />
+    </root>
+</configuration>
