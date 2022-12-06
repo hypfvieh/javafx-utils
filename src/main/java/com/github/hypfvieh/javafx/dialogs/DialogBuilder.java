@@ -2,6 +2,7 @@ package com.github.hypfvieh.javafx.dialogs;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,7 +30,7 @@ import javafx.stage.Window;
 public class DialogBuilder {
 
     private AlertType                     type;
-    private final Map<String, ButtonData> buttons = new LinkedHashMap<>();
+    private final Map<ButtonData, String> buttons = new LinkedHashMap<>();
 
     private String                        subTitle;
     private String                        title;
@@ -41,6 +42,7 @@ public class DialogBuilder {
     private Throwable                     throwable;
     private String                        detailButtonCaption;
     private Supplier<Boolean>             doShowIf;
+    private Collection<String>            lines;
 
     // allow subclassing so builder is easier testable
     protected DialogBuilder() {
@@ -108,9 +110,14 @@ public class DialogBuilder {
      * @param _button button type
      * @param _caption caption
      * @return this
+     *
+     * @throws IllegalArgumentException when button was already defined
      */
     public DialogBuilder withButton(ButtonData _button, String _caption) {
-        buttons.put(_caption, _button);
+        if (buttons.containsKey(_button)) {
+            throw new IllegalArgumentException("Button of type " + _button + " already defined");
+        }
+        buttons.put(_button, _caption);
         return this;
     }
 
@@ -184,6 +191,27 @@ public class DialogBuilder {
      */
     public DialogBuilder withThrowable(Throwable _throw, String _detailButtonCaption) {
         throwable = _throw;
+        detailButtonCaption = _detailButtonCaption == null || _detailButtonCaption.isBlank() ? "Details" : _detailButtonCaption;
+        return this;
+    }
+
+    /**
+     * Add extra text in a text area which is hidden behind a button by default.<br>
+     * This uses the same feature as {@link #withThrowable(Throwable, String)}.
+     * <p>
+     * <b>Caution:</b>
+     * When {@link #withThrowable(Throwable, String)} was used, the content of the exception
+     * takes precedence over the content set by this method.
+     *
+     * @param _throw
+     * @param _detailButtonCaption
+     *
+     * @return this
+     *
+     * @since 11.0.3 - 2022-12-05
+     */
+    public DialogBuilder withExtendedContent(Collection<String> _lines, String _detailButtonCaption) {
+        lines = _lines;
         detailButtonCaption = _detailButtonCaption == null || _detailButtonCaption.isBlank() ? "Details" : _detailButtonCaption;
         return this;
     }
@@ -277,16 +305,18 @@ public class DialogBuilder {
         if (!buttons.isEmpty()) {
             dialog.getButtonTypes().clear();
 
-            for (Entry<String, ButtonData> e : buttons.entrySet()) {
-                if (e.getKey() == null) {
+            for (Entry<ButtonData, String> e : buttons.entrySet()) {
+                if (e.getValue() == null || e.getKey() == null) {
                     continue;
                 }
-                dialog.getButtonTypes().add(new ButtonType(e.getKey(), e.getValue()));
+                dialog.getButtonTypes().add(new ButtonType(e.getValue(), e.getKey()));
             }
         }
 
         if (throwable != null) {
             FxDialogUtils.setExpandableContent(detailButtonCaption, StringHelper.getStackTrace(throwable), dialog);
+        } else if (lines != null) {
+            FxDialogUtils.setExpandableContent(detailButtonCaption, String.join(System.lineSeparator(), lines), dialog);
         }
 
         ButtonData result = dialog.showAndWait().orElse(ButtonType.CANCEL).getButtonData();
