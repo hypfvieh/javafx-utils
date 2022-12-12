@@ -3,6 +3,8 @@ package com.github.hypfvieh.javafx.app;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.Thread.UncaughtExceptionHandler;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -256,6 +258,7 @@ public abstract class AppMainBaseWithSplash extends Application {
         windowOptions
             .withResizeable(true)
             .withIcon(config.getAppIcon())
+            .withIcons(config.getAppIcons())
             .withRunOnClose((c, s) -> {
                 try {
                     Runnable shutdownTaskAction = onMainWindowCloseAction(_stage);
@@ -407,6 +410,12 @@ public abstract class AppMainBaseWithSplash extends Application {
             splashLayout.getChildren().add(progressBar);
         }
 
+        try {
+            FxWindowUtils.loadStageIcons(config.getAppIcons(), _initStage);
+        } catch (IOException _ex) {
+            logger.error("Error loading stage icons", _ex);
+        }
+
         _initStage.setScene(splashScene);
         _initStage.initStyle(StageStyle.TRANSPARENT);
         _initStage.setAlwaysOnTop(true);
@@ -423,9 +432,9 @@ public abstract class AppMainBaseWithSplash extends Application {
     public static class SplashAppConfig {
         private final String mainWindowFxml;
         private final String splashImage;
+        private final List<String> appIcons = new ArrayList<>();
 
         private String mainWindowTitle;
-        private String appIcon;
         private String splashWindowTitle;
 
         private Color progressLabelTextColor = Color.ORANGERED;
@@ -468,7 +477,16 @@ public abstract class AppMainBaseWithSplash extends Application {
          * @return this
          */
         public SplashAppConfig withAppIcon(String _iconPath) {
-            appIcon = _iconPath;
+            if (_iconPath != null) {
+                appIcons.add(_iconPath);
+            }
+            return this;
+        }
+
+        public SplashAppConfig withAppIcons(List<String> _iconPath) {
+            if (_iconPath != null) {
+                _iconPath.stream().filter(Objects::nonNull).forEach(appIcons::add);
+            }
             return this;
         }
 
@@ -529,7 +547,11 @@ public abstract class AppMainBaseWithSplash extends Application {
         }
 
         public String getAppIcon() {
-            return appIcon;
+            return appIcons.isEmpty() ? null : appIcons.get(0);
+        }
+
+        public List<String> getAppIcons() {
+            return appIcons;
         }
 
         public String getSplashWindowTitle() {

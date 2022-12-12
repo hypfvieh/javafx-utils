@@ -1,6 +1,7 @@
 package com.github.hypfvieh.javafx.fx;
 
 import java.io.Closeable;
+import java.io.IOException;
 import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.net.URL;
@@ -9,6 +10,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
@@ -249,27 +251,10 @@ public class FxWindowUtils {
             if (windowOptions.getHeight() > 0) {
                 stage.setHeight(windowOptions.getHeight());
             }
-
-            List<String> possibleIcons = new ArrayList<>();
-            possibleIcons.add(windowOptions.getIcon());
-            possibleIcons.add("images/" + controller.getClass().getSimpleName() + ".png");
-            possibleIcons.add(default_window_icon);
-
-            // find a proper icon and set it, if none is found, no icon will be set
-            for (String iconFile : possibleIcons) {
-                if (iconFile == null || iconFile.isBlank()) {
-                    continue;
-                }
-                if (FxWindowUtils.class.getClassLoader().getResource(iconFile) == null) {
-                    continue;
-                }
-                try (InputStream imgStream = FxWindowUtils.class.getClassLoader().getResourceAsStream(iconFile)) {
-                    if (imgStream != null) {
-                        stage.getIcons().add(new Image(imgStream));
-                        break; // we have an icon
-                    }
-                }
-            }
+            ArrayList<String> icons = new ArrayList<>(windowOptions.getIcons());
+            icons.add("images/" + controller.getClass().getSimpleName() + ".png");
+            icons.add(default_window_icon);
+            loadStageIcons(icons, stage);
 
             Scene scene = new Scene(root);
 
@@ -395,6 +380,40 @@ public class FxWindowUtils {
             LOGGER.error("Error while showing window:", _ex);
         }
         return null;
+    }
+
+    /**
+     * Loads all icons in the given list and adds them as possible stage icon.<br>
+     * If {@code null} or empty list of icons is given, nothing will be done.
+     *
+     * @param _icons icons to add (not null or empty)
+     * @param _stage stage to add icons to
+     *
+     * @throws IOException when loading icons failed
+     */
+    public static void loadStageIcons(List<String> _icons, Stage _stage) throws IOException {
+        if (_icons == null || _icons.isEmpty()) {
+            return;
+        }
+        List<String> possibleIcons = new ArrayList<>();
+        _icons.stream().filter(Objects::nonNull).forEach(possibleIcons::add);
+        possibleIcons.addAll(_icons);
+
+        // find a proper icon and set it, if none is found, no icon will be set
+        for (String iconFile : possibleIcons) {
+            if (iconFile == null || iconFile.isBlank()) {
+                continue;
+            }
+            if (FxWindowUtils.class.getClassLoader().getResource(iconFile) == null) {
+                continue;
+            }
+            try (InputStream imgStream = FxWindowUtils.class.getClassLoader().getResourceAsStream(iconFile)) {
+                if (imgStream != null) {
+                    _stage.getIcons().add(new Image(imgStream));
+                    break; // we have an icon
+                }
+            }
+        }
     }
 
     /**
@@ -696,7 +715,7 @@ public class FxWindowUtils {
         /** Window will be closed when it is no longer the active window. Will be ignored if alwaysOnTop is enabled. */
         private boolean closeOnFocusLost;
         /** Window icon. */
-        private String icon;
+        private final List<String> icon = new ArrayList<>();
         /** Called when window gets closed (after IBlockClose and ISaveOnClose), will receive current controller and stage. */
         private BiConsumer<Initializable, Stage> runOnClose;
         /** Called when window gets shown (after ICustomInitialize), will receive controller and stage. */
@@ -787,12 +806,21 @@ public class FxWindowUtils {
             return this;
         }
 
-        public String getIcon() {
+        public List<String> getIcons() {
             return icon;
         }
 
         public WindowOptions withIcon(String _icon) {
-            icon = _icon;
+            if (_icon != null) {
+                icon.add(_icon);
+            }
+            return this;
+        }
+
+        public WindowOptions withIcons(List<String> _icons) {
+            if (_icons != null) {
+                _icons.stream().filter(Objects::nonNull).forEach(icon::add);
+            }
             return this;
         }
 
