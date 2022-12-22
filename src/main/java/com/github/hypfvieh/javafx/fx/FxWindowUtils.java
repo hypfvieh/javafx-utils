@@ -404,14 +404,12 @@ public class FxWindowUtils {
             if (iconFile == null || iconFile.isBlank()) {
                 continue;
             }
-            if (FxWindowUtils.class.getClassLoader().getResource(iconFile) == null) {
-                continue;
-            }
+
             try (InputStream imgStream = FxWindowUtils.class.getClassLoader().getResourceAsStream(iconFile)) {
-                if (imgStream != null) {
-                    _stage.getIcons().add(new Image(imgStream));
-                    break; // we have an icon
+                if (imgStream == null) {
+                    continue;
                 }
+                _stage.getIcons().add(new Image(imgStream));
             }
         }
     }

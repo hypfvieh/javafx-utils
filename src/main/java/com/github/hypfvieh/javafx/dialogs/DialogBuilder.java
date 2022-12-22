@@ -1,5 +1,6 @@
 package com.github.hypfvieh.javafx.dialogs;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -12,13 +13,17 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import org.slf4j.LoggerFactory;
+
 import com.github.hypfvieh.javafx.fx.FxDialogUtils;
+import com.github.hypfvieh.javafx.fx.FxWindowUtils;
 import com.github.hypfvieh.javafx.utils.StringHelper;
 
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
+import javafx.stage.Stage;
 import javafx.stage.Window;
 
 /**
@@ -43,6 +48,8 @@ public class DialogBuilder {
     private String                        detailButtonCaption;
     private Supplier<Boolean>             doShowIf;
     private Collection<String>            lines;
+
+    private final List<String>            windowIcons = new ArrayList<>();
 
     // allow subclassing so builder is easier testable
     protected DialogBuilder() {
@@ -174,6 +181,27 @@ public class DialogBuilder {
      */
     public DialogBuilder withWidth(Double _width) {
         width = _width;
+        return this;
+    }
+
+    /**
+     * Set the icon(s) used in tray bar and dialog decoration.
+     * <p>
+     * The icon will be chosen by JavaFX by selecting the icon
+     * which resolution fits best for the current decoration icon size.
+     * If icon is smaller or bigger, it will be resized.
+     * </p>
+     *
+     * @param _windowIcon list of URLs with icons to set, null to remove all icons
+     *
+     * @return this
+     */
+    public DialogBuilder withWindowIcon(List<String> _windowIcon) {
+        if (_windowIcon != null) {
+            windowIcons.addAll(_windowIcon);
+        } else {
+            windowIcons.clear();
+        }
         return this;
     }
 
@@ -313,6 +341,15 @@ public class DialogBuilder {
             }
         }
 
+        if (!windowIcons.isEmpty()) {
+            Stage stage = (Stage) dialog.getDialogPane().getScene().getWindow();
+            try {
+                FxWindowUtils.loadStageIcons(windowIcons, stage);
+            } catch (IOException _ex) {
+                LoggerFactory.getLogger(getClass()).error("Error loading stage icons", _ex);
+            }
+        }
+
         if (throwable != null) {
             FxDialogUtils.setExpandableContent(detailButtonCaption, StringHelper.getStackTrace(throwable), dialog);
         } else if (lines != null) {
@@ -347,6 +384,7 @@ public class DialogBuilder {
         throwable = null;
         detailButtonCaption = null;
         doShowIf = null;
+        windowIcons.clear();
 
         return this;
     }
