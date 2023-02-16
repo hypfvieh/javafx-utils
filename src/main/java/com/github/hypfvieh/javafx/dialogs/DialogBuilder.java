@@ -287,7 +287,6 @@ public class DialogBuilder {
      * When the button pressed consumer will be called receiving the pressed button.
      *
      * @param _stage parent stage
-     * @param _button button to react on
      * @param _r consumer to execute
      */
     public void showAndExecute(Window _stage, Consumer<ButtonData> _r) {
@@ -301,7 +300,6 @@ public class DialogBuilder {
      * When the button pressed function will be called receiving the pressed button.
      *
      * @param _stage parent stage
-     * @param _button button to react on
      * @param _r function to execute
      */
     public <T> T showAndExecute(Window _stage, Function<ButtonData, T> _r) {
