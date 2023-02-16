@@ -14,7 +14,12 @@ import javafx.scene.control.TextFormatter.Change;
 import javafx.util.StringConverter;
 
 public class FxConverter {
-    private static final Pattern CURRENCY_PATTERN = createCurrencyPattern(true, Locale.getDefault());
+    static final Pattern CURRENCY_PATTERN = createCurrencyPattern(true, Locale.getDefault());
+    static final Pattern INT_NON_NEGATIVE = Pattern.compile("^[0-9]+$");
+    static final Pattern INT_OPT_NEGATIVE = Pattern.compile("^-?[0-9]+$");
+
+    static final Pattern PHONE_PATTERN = Pattern.compile("[0-9\\-\\+\\/ ]+");
+
 
     /**
      * Creates a regex matching currency strings.
@@ -42,7 +47,29 @@ public class FxConverter {
     public static UnaryOperator<Change> createIntegerFilter(boolean _allowNull) {
         return c -> {
             if (c.isContentChange()) {
-                if (!c.getControlNewText().matches("-?[0-9]+")) {
+                if (!INT_OPT_NEGATIVE.matcher(c.getControlNewText()).matches()) {
+                    if (_allowNull && c.getControlNewText() == null || c.getControlNewText().isEmpty()) {
+                        return c;
+                    }
+                    return null;
+                }
+            }
+            return c;
+        };
+    }
+
+    /**
+     * Creates a UnaryOperator usable as filter for e.g. Spinner.
+     * @param _allowNull true to allow <code>null</code> values.
+     * @param _allowNegative true to allow negative integer
+     *
+     * @return {@link UnaryOperator}
+     */
+    public static UnaryOperator<Change> createIntegerFilter(boolean _allowNull, boolean _allowNegative) {
+        Pattern p = _allowNegative ? INT_OPT_NEGATIVE : INT_NON_NEGATIVE;
+        return c -> {
+            if (c.isContentChange()) {
+                if (!p.matcher(c.getControlNewText()).matches()) {
                     if (_allowNull && c.getControlNewText() == null || c.getControlNewText().isEmpty()) {
                         return c;
                     }
@@ -62,7 +89,7 @@ public class FxConverter {
     public static UnaryOperator<Change> createPortFilter(boolean _allowWellKnown) {
         return c -> {
             if (c.isContentChange()) {
-                if (!c.getControlNewText().matches("[0-9]+")) {
+                if (!INT_NON_NEGATIVE.matcher(c.getControlNewText()).matches()) {
                     if (c.getControlNewText() == null || c.getControlNewText().isEmpty()) {
                         return c;
                     }
@@ -90,7 +117,7 @@ public class FxConverter {
     public static UnaryOperator<Change> createPhoneNumberFilter(boolean _allowNull) {
         return c -> {
             if (c.isContentChange()) {
-                if (!c.getControlNewText().matches("[0-9\\-+/ ]+")) {
+                if (!PHONE_PATTERN.matcher(c.getControlNewText()).matches()) {
                     if (_allowNull && c.getControlNewText() == null || c.getControlNewText().isEmpty()) {
                         return c;
                     }
@@ -174,7 +201,7 @@ public class FxConverter {
 
             @Override
             public Integer fromString(String _string) {
-                if (_string != null && _string.matches("^-?[0-9]+$")) {
+                if (_string != null && INT_OPT_NEGATIVE.matcher(_string).matches()) {
                     return Integer.valueOf(_string);
                 }
                 return -1;
@@ -212,7 +239,7 @@ public class FxConverter {
 
             @Override
             public Integer fromString(String _string) {
-                if (_string != null && _string.matches("^-?[0-9]+$")) {
+                if (_string != null && INT_OPT_NEGATIVE.matcher(_string).matches()) {
                     return Integer.valueOf(_string);
                 }
                 return -1;
