@@ -42,7 +42,7 @@ public class ChoiceDialogExt<T> extends Dialog<T> {
     private final T defaultChoice;
     private Function<T, String> valConverter;
 
-
+    private ButtonData pressedButton;
 
     /**************************************************************************
      *
@@ -156,8 +156,8 @@ public class ChoiceDialogExt<T> extends Dialog<T> {
         updateGrid();
 
         setResultConverter((dialogButton) -> {
-            ButtonData data = dialogButton == null ? null : dialogButton.getButtonData();
-            return data == ButtonData.OK_DONE ? getSelectedItem() : null;
+            pressedButton = dialogButton == null ? null : dialogButton.getButtonData();
+            return pressedButton == ButtonData.OK_DONE ? getSelectedItem() : null;
         });
     }
 
@@ -182,6 +182,10 @@ public class ChoiceDialogExt<T> extends Dialog<T> {
      */
     public final T getSelectedItem() {
         return comboBox.getSelectionModel().getSelectedItem();
+    }
+
+    public ButtonData getPressedButton() {
+        return pressedButton;
     }
 
     /**
