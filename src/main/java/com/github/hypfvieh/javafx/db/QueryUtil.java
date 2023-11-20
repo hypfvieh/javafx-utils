@@ -149,7 +149,51 @@ public class QueryUtil implements Closeable {
         }
     }
 
+    /**
+     * Execute given function in default session wrapped in a transaction.
+     * If function throws a {@link RuntimeException}, transaction is rolled back.
+     * @param _func consumer to execute (will receive current session)
+     */
+    public void doInTransaction(Consumer<Session> _func) {
+        if (_func == null) {
+            return;
+        }
+        executeInSession(session -> {
+            doTransaction(_func, session);
+        });
+    }
 
+    /**
+     * Execute given function in a new session wrapped in a transaction.
+     * If function throws a {@link RuntimeException}, transaction is rolled back.
+     * @param _func consumer to execute (will receive current session)
+     */
+    public void doInTransactionInNewSession(Consumer<Session> _func) {
+        if (_func == null) {
+            return;
+        }
+        executeInNewSession(session -> {
+            doTransaction(_func, session);
+        });
+    }
+
+    /**
+     * Execute function on the given session.
+     * 
+     * @param _func function
+     * @param _session session
+     */
+    private void doTransaction(Consumer<Session> _func, Session _session) {
+        _session.beginTransaction();
+        try {
+            _func.accept(_session);
+            _session.getTransaction().commit();
+        } catch (RuntimeException _ex) {
+            _session.getTransaction().rollback();
+            throw _ex;
+        }
+    }
+    
     /**
      * Execute the given Function in the database session.
      * Optionally catch all exceptions which might be thrown.
