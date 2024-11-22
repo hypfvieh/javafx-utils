@@ -1,23 +1,16 @@
 package com.github.hypfvieh.javafx.dialogs;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Supplier;
-
-import org.slf4j.LoggerFactory;
-
 import com.github.hypfvieh.javafx.fx.FxDialogUtils;
 import com.github.hypfvieh.javafx.fx.FxWindowUtils;
 import com.github.hypfvieh.javafx.utils.StringHelper;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
@@ -50,6 +43,7 @@ public class DialogBuilder {
     private Collection<String>            lines;
 
     private final List<String>            windowIcons = new ArrayList<>();
+    private boolean expanded;
 
     // allow subclassing so builder is easier testable
     protected DialogBuilder() {
@@ -159,6 +153,20 @@ public class DialogBuilder {
     }
 
     /**
+     * Expand the detail pane when showing the dialog.
+     *
+     * @param _expanded true to expand
+     * @return this
+     *
+     * @since 11.0.3 - 2024-11-21
+     */
+    public DialogBuilder withDetailsExpanded(boolean _expanded) {
+        expanded = _expanded;
+        return this;
+    }
+
+
+    /**
      * Set the height of the created dialog.
      * If null is given, default size is used.
      *
@@ -209,8 +217,7 @@ public class DialogBuilder {
      * Set a throwable (exception) to show a dialog with
      * extended information (the stack trace).
      * <p>
-     * If no value (null or blank/empty String) is given for the button
-     * caption 'Details' will be used.
+     * If no value (null or blank/empty String) Alert-Dialog default is used.
      *
      * @param _throw throwable
      * @param _detailButtonCaption caption for the button to show details
@@ -219,8 +226,12 @@ public class DialogBuilder {
      */
     public DialogBuilder withThrowable(Throwable _throw, String _detailButtonCaption) {
         throwable = _throw;
-        detailButtonCaption = _detailButtonCaption == null || _detailButtonCaption.isBlank() ? "Details" : _detailButtonCaption;
+        setDetailButtonCaption(_detailButtonCaption);
         return this;
+    }
+
+    private void setDetailButtonCaption(String _text) {
+        detailButtonCaption = _text != null && !_text.isBlank() ? _text : null;
     }
 
     /**
@@ -240,7 +251,7 @@ public class DialogBuilder {
      */
     public DialogBuilder withExtendedContent(Collection<String> _lines, String _detailButtonCaption) {
         lines = _lines;
-        detailButtonCaption = _detailButtonCaption == null || _detailButtonCaption.isBlank() ? "Details" : _detailButtonCaption;
+        setDetailButtonCaption(_detailButtonCaption);
         return this;
     }
 
@@ -354,6 +365,8 @@ public class DialogBuilder {
             FxDialogUtils.setExpandableContent(detailButtonCaption, String.join(System.lineSeparator(), lines), dialog);
         }
 
+        dialog.getDialogPane().setExpanded(expanded);
+
         ButtonData result = dialog.showAndWait().orElse(ButtonType.CANCEL).getButtonData();
 
         // reset builder before returning:
@@ -361,6 +374,8 @@ public class DialogBuilder {
 
         return result;
     }
+
+
 
     /**
      * Reset the state of the internal fields to the default.
@@ -383,6 +398,8 @@ public class DialogBuilder {
         detailButtonCaption = null;
         doShowIf = null;
         windowIcons.clear();
+        lines = null;
+        expanded = false;
 
         return this;
     }

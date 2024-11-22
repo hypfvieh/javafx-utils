@@ -9,13 +9,10 @@ import com.github.hypfvieh.javafx.utils.StringHelper;
 import com.github.hypfvieh.javafx.utils.Translator;
 
 import javafx.application.Platform;
-import javafx.scene.control.Alert;
+import javafx.scene.Scene;
+import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonBar.ButtonData;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.Dialog;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextArea;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -228,16 +225,14 @@ public class FxDialogUtils {
     /**
      * Manipulate content of a dialog to add an expandable textbox.
      *
-     * @param _detailtBtnText caption of the button for expansion
+     * @param _detailBtnText caption of the button for expansion
      * @param _text text to display in textarea
      * @param _dialog dialog to modify
      */
-    public static void setExpandableContent(String _detailtBtnText, String _text, Dialog<?> _dialog) {
+    public static void setExpandableContent(String _detailBtnText, String _text, Dialog<?> _dialog) {
         if (_dialog == null) {
             return;
         }
-
-        Label label = new Label(_detailtBtnText);
 
         TextArea textArea = new TextArea(_text);
         textArea.setEditable(false);
@@ -250,16 +245,39 @@ public class FxDialogUtils {
 
         GridPane expandableContent = new GridPane();
         expandableContent.setMaxWidth(Double.MAX_VALUE);
-        expandableContent.add(label, 0, 0);
-        expandableContent.add(textArea, 0, 1);
+        expandableContent.add(textArea, 0, 0);
+
         _dialog.getDialogPane().setExpandableContent(expandableContent);
 
+        if (_detailBtnText != null) {
+            setDetailButtonText(_dialog, _detailBtnText);
+        }
+
         _dialog.getDialogPane().expandedProperty().addListener((observable) -> {
+            setDetailButtonText(_dialog, _detailBtnText);
             Platform.runLater(() -> {
                 _dialog.getDialogPane().requestLayout();
-                Stage stage = (Stage)_dialog.getDialogPane().getScene().getWindow();
-                stage.sizeToScene();
+                Scene scene = _dialog.getDialogPane().getScene();
+                if (scene != null) {
+                    Stage stage = (Stage) scene.getWindow();
+                    stage.sizeToScene();
+                }
             });
         });
+
+    }
+
+    private static void setDetailButtonText(Dialog<?> _dialog, String _detailBtnText) {
+        _dialog.getDialogPane().getChildren().stream()
+        .filter(ButtonBar.class::isInstance)
+            .map(ButtonBar.class::cast)
+            .findFirst()
+            .flatMap(b -> b.getButtons().stream()
+                .filter(Hyperlink.class::isInstance)
+                .map(Hyperlink.class::cast)
+                .findFirst())
+            .ifPresent(c -> {
+                c.setText(_detailBtnText);
+            });
     }
 }

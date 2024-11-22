@@ -132,6 +132,19 @@ public class FxWindowPresenter {
     }
 
     /**
+     * Setup multiple window icons used in taskbar/window decoration.
+     * The icon should use the same name and end with the size and a supported file extension.
+     * E.g.: my_name_16x16.png, my_name_32x32.png
+     *
+     * @param _icons icon names
+     * @return this
+     */
+    public FxWindowPresenter withIcons(List<String> _icon) {
+        windowOptions.withIcons(_icon);
+        return this;
+    }
+
+    /**
      * Run this runnable when window is getting closed.
      *
      * @param _runOnClose runnable
