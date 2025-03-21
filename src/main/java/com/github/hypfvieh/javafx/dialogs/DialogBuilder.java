@@ -330,6 +330,24 @@ public class DialogBuilder {
             return ButtonData.CANCEL_CLOSE;
         }
 
+        Alert dialog = createDialog(_stage);
+
+        ButtonData result = dialog.showAndWait().orElse(ButtonType.CANCEL).getButtonData();
+
+        // reset builder before returning:
+        reset();
+
+        return result;
+    }
+
+    /**
+     * Creates an Alert dialog based on builder settings.
+     *
+     * @param _stage parent window
+     * @return Alert dialog
+     */
+    public Alert createDialog(Window _stage) {
+
         Alert dialog = FxDialogUtils.createDialog(_stage, type, title, subTitle, String.join(System.lineSeparator(), message));
 
         if (height != null) {
@@ -367,15 +385,8 @@ public class DialogBuilder {
 
         dialog.getDialogPane().setExpanded(expanded);
 
-        ButtonData result = dialog.showAndWait().orElse(ButtonType.CANCEL).getButtonData();
-
-        // reset builder before returning:
-        reset();
-
-        return result;
+        return dialog;
     }
-
-
 
     /**
      * Reset the state of the internal fields to the default.
