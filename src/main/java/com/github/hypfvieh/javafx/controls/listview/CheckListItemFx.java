@@ -12,6 +12,9 @@ import javafx.beans.property.SimpleBooleanProperty;
 public class CheckListItemFx<T> extends AbstractListItem<T> {
     private final SimpleBooleanProperty checked = new SimpleBooleanProperty();
 
+    public CheckListItemFx(T _obj) {
+        this(_obj, false);
+    }
 
     public CheckListItemFx(T _obj, boolean _checked) {
         super(_obj);

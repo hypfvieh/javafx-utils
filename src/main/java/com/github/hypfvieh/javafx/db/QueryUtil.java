@@ -179,7 +179,7 @@ public class QueryUtil implements Closeable {
 
     /**
      * Execute function on the given session.
-     * 
+     *
      * @param _func function
      * @param _session session
      */
@@ -193,7 +193,7 @@ public class QueryUtil implements Closeable {
             throw _ex;
         }
     }
-    
+
     /**
      * Execute the given Function in the database session.
      * Optionally catch all exceptions which might be thrown.
@@ -333,6 +333,10 @@ public class QueryUtil implements Closeable {
 
     public boolean isClosed() {
         return dbFactory == null || dbFactory.isClosed();
+    }
+
+    public Session createNewSession() {
+        return dbFactory.openSession();
     }
 
     /**
