@@ -6,6 +6,7 @@ import java.util.function.Function;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -178,18 +179,32 @@ public class QueryUtil implements Closeable {
     }
 
     /**
-     * Execute function on the given session.
+     * Execute function on the given session in a transaction.
+     * <p>
+     * If transaction already active, the function will be called without committing transaction.
+     * If no transaction present, a new transaction will be created, the function is executed and
+     * the transaction will be committed at the end.
+     * </p>
+     * <p>
+     * If any exception is thrown, the transaction will be rolled back.
+     * </p>
      *
      * @param _func function
      * @param _session session
      */
     private void doTransaction(Consumer<Session> _func, Session _session) {
-        _session.beginTransaction();
+        Transaction transaction = _session.getTransaction();
+        boolean wasActive = transaction.isActive();
+        if (!wasActive) {
+            transaction.begin();
+        }
         try {
             _func.accept(_session);
-            _session.getTransaction().commit();
-        } catch (RuntimeException _ex) {
-            _session.getTransaction().rollback();
+            if (!wasActive) {
+                transaction.commit();
+            }
+        } catch (Exception _ex) {
+            transaction.rollback();
             throw _ex;
         }
     }
